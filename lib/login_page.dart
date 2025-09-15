@@ -1,0 +1,64 @@
+import 'package:flutter/material.dart';
+import 'home_page.dart';
+
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final logo = CircleAvatar(
+      radius: 56,
+      backgroundColor: Colors.transparent,
+      child: Image.asset('assets/pudidi.png'),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              logo,
+              const SizedBox(height: 32),
+
+              // Email
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Password
+              const TextField(
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Tombol Login
+              SizedBox(
+                width: 200,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomePage()),
+                    );
+                  },
+                  child: const Text('Login'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
