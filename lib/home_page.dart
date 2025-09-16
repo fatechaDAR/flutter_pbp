@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red[400]),
+              icon: Icon(Icons.delete, color: Colors.red.shade400),
               onPressed: () {
                 _hapusTugas(index);
               },
