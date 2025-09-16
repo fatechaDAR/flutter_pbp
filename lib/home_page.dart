@@ -1,32 +1,11 @@
 // lib/home_page.dart
 
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package.flutter/material.dart';
+import 'models/tugas.dart';
+import 'models/harian.dart';
+import 'models/mingguan.dart'; 
+import 'package:intl/intl.dart';
 
-// Class Model untuk data Tugas
-class Tugas {
-  String judul;
-  bool isSelesai;
-
-  Tugas({required this.judul, this.isSelesai = false});
-
-  // Fungsi untuk mengubah objek Tugas menjadi format yang bisa disimpan (JSON)
-  Map<String, dynamic> toJson() => {
-        'judul': judul,
-        'isSelesai': isSelesai,
-      };
-
-  // Fungsi untuk membuat objek Tugas dari data yang tersimpan (JSON)
-  factory Tugas.fromJson(Map<String, dynamic> map) {
-    return Tugas(
-      judul: map['judul'],
-      isSelesai: map['isSelesai'],
-    );
-  }
-}
-
-// Mengubah HomePage menjadi StatefulWidget agar bisa mengelola data
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -35,71 +14,42 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Variabel untuk menampung daftar tugas
-  final List<Tugas> _daftarTugas = [];
+  final List<Tugas> _daftarTugas = [
+    TugasHarian(judul: 'Menyapu lantai'),
+    TugasDeadline(
+      judul: 'Bayar tagihan listrik',
+      tanggalDeadline: DateTime.now().add(const Duration(days: 3)),
+    ),
+    TugasHarian(judul: 'Mengerjakan tugas Flutter'),
+  ];
+  
   final TextEditingController _textController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    // Panggil fungsi _loadTugas saat halaman pertama kali dibuka
-    _loadTugas();
-  }
-
-  // Fungsi untuk MEMUAT data dari memori perangkat
-  Future<void> _loadTugas() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? tugasString = prefs.getString('list_tugas');
-    if (tugasString != null) {
-      final List<dynamic> tugasJson = jsonDecode(tugasString);
-      setState(() {
-        _daftarTugas.clear();
-        _daftarTugas.addAll(tugasJson.map((json) => Tugas.fromJson(json)));
-      });
-    }
-  }
-
-  // Fungsi untuk MENYIMPAN data ke memori perangkat
-  Future<void> _saveTugas() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String tugasString =
-        jsonEncode(_daftarTugas.map((tugas) => tugas.toJson()).toList());
-    await prefs.setString('list_tugas', tugasString);
-  }
-
-  // Fungsi untuk menambah tugas baru
-  void _tambahTugas(String judul) {
+  void _ubahStatusTugas(Tugas tugas) {
     setState(() {
-      _daftarTugas.add(Tugas(judul: judul));
+      tugas.isSelesai = !tugas.isSelesai;
     });
-    _saveTugas(); // Simpan perubahan
   }
 
-  // Fungsi untuk mengubah status selesai
-  void _ubahStatusTugas(int index) {
+  void _hapusTugas(Tugas tugas) {
     setState(() {
-      _daftarTugas[index].isSelesai = !_daftarTugas[index].isSelesai;
+      _daftarTugas.remove(tugas);
     });
-    _saveTugas(); // Simpan perubahan
   }
 
-  // Fungsi untuk menghapus tugas
-  void _hapusTugas(int index) {
+  void _tambahTugasHarian(String judul) {
     setState(() {
-      _daftarTugas.removeAt(index);
+      _daftarTugas.add(TugasHarian(judul: judul));
     });
-    _saveTugas(); // Simpan perubahan
   }
-  
-  // Fungsi untuk menampilkan dialog tambah tugas
+
   void _tampilkanDialogTambahTugas() {
-    // Pastikan controller bersih sebelum dialog ditampilkan
     _textController.clear();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Tambah Tugas Baru'),
+          title: const Text('Tambah Tugas Harian Baru'),
           content: TextField(
             controller: _textController,
             autofocus: true,
@@ -114,7 +64,7 @@ class _HomePageState extends State<HomePage> {
               child: const Text('Tambah'),
               onPressed: () {
                 if (_textController.text.isNotEmpty) {
-                  _tambahTugas(_textController.text);
+                  _tambahTugasHarian(_textController.text);
                   Navigator.of(context).pop();
                 }
               },
@@ -129,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('To-Do List'),
+        title: const Text('To-Do List (Multi-Tipe)'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
@@ -137,12 +87,18 @@ class _HomePageState extends State<HomePage> {
         itemCount: _daftarTugas.length,
         itemBuilder: (context, index) {
           final tugas = _daftarTugas[index];
+
+          
+          String subtitle = 'Tugas Harian'; 
+          if (tugas is TugasDeadline) {
+            
+            subtitle = 'Deadline: ${DateFormat('d MMMM yyyy').format(tugas.tanggalDeadline)}';
+          }
+          
           return ListTile(
             leading: Checkbox(
               value: tugas.isSelesai,
-              onChanged: (value) {
-                _ubahStatusTugas(index);
-              },
+              onChanged: (value) => _ubahStatusTugas(tugas),
             ),
             title: Text(
               tugas.judul,
@@ -153,18 +109,18 @@ class _HomePageState extends State<HomePage> {
                 color: tugas.isSelesai ? Colors.grey[600] : Colors.black,
               ),
             ),
+            // Tampilkan subtitle yang sudah kita siapkan
+            subtitle: Text(subtitle),
             trailing: IconButton(
               icon: Icon(Icons.delete, color: Colors.red.shade400),
-              onPressed: () {
-                _hapusTugas(index);
-              },
+              onPressed: () => _hapusTugas(tugas),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _tampilkanDialogTambahTugas,
-        tooltip: 'Tambah Tugas',
+        tooltip: 'Tambah Tugas Harian',
         child: const Icon(Icons.add),
       ),
     );
