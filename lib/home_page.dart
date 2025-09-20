@@ -1,10 +1,11 @@
 // lib/home_page.dart
 
-import 'package.flutter/material.dart';
-import 'models/tugas.dart';
-import 'models/harian.dart';
-import 'models/mingguan.dart'; 
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'models/media.dart';
+import 'models/film.dart';
+import 'models/buku.dart';
+import 'models/album_musik.dart';
+import 'detail_page.dart'; // Import halaman detail yang baru
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,64 +15,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Tugas> _daftarTugas = [
-    TugasHarian(judul: 'Menyapu lantai'),
-    TugasDeadline(
-      judul: 'Bayar tagihan listrik',
-      tanggalDeadline: DateTime.now().add(const Duration(days: 3)),
-    ),
-    TugasHarian(judul: 'Mengerjakan tugas Flutter'),
+  // Data dummy untuk ditampilkan di list
+  // List ini bisa menampung berbagai jenis Media (Polymorphism)
+  final List<Media> _daftarMedia = [
+    Film('Inception', 2010, 'Sci-Fi', 'assets/pudidi.png', 'Christopher Nolan', 148),
+    Buku('Laskar Pelangi', 2005, 'Novel', null, 'Andrea Hirata', 529),
+    AlbumMusik('A Head Full of Dreams', 2015, 'Pop Rock', null, 'Coldplay', 12),
+    Film('The Dark Knight', 2008, 'Action', 'assets/pudidi.png', 'Christopher Nolan', 152),
+    Buku('Bumi Manusia', 1980, 'Sejarah', null, 'Pramoedya Ananta Toer', 535),
   ];
-  
-  final TextEditingController _textController = TextEditingController();
 
-  void _ubahStatusTugas(Tugas tugas) {
-    setState(() {
-      tugas.isSelesai = !tugas.isSelesai;
-    });
-  }
-
-  void _hapusTugas(Tugas tugas) {
-    setState(() {
-      _daftarTugas.remove(tugas);
-    });
-  }
-
-  void _tambahTugasHarian(String judul) {
-    setState(() {
-      _daftarTugas.add(TugasHarian(judul: judul));
-    });
-  }
-
-  void _tampilkanDialogTambahTugas() {
-    _textController.clear();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Tambah Tugas Harian Baru'),
-          content: TextField(
-            controller: _textController,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Masukkan judul tugas...'),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Batal'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Tambah'),
-              onPressed: () {
-                if (_textController.text.isNotEmpty) {
-                  _tambahTugasHarian(_textController.text);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
-        );
-      },
+  // Fungsi untuk navigasi ke halaman detail
+  void _bukaHalamanDetail(Media media) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailPage(media: media),
+      ),
     );
   }
 
@@ -79,48 +39,48 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('To-Do List (Multi-Tipe)'),
-        backgroundColor: Colors.blue,
+        title: const Text('Koleksi Media'),
+        backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
       body: ListView.builder(
-        itemCount: _daftarTugas.length,
+        itemCount: _daftarMedia.length,
         itemBuilder: (context, index) {
-          final tugas = _daftarTugas[index];
+          final media = _daftarMedia[index];
 
-          
-          String subtitle = 'Tugas Harian'; 
-          if (tugas is TugasDeadline) {
-            
-            subtitle = 'Deadline: ${DateFormat('d MMMM yyyy').format(tugas.tanggalDeadline)}';
+          // Siapkan ikon dan subtitle berdasarkan tipe media
+          IconData ikon;
+          String subtitle;
+          if (media is Film) {
+            ikon = Icons.movie;
+            subtitle = 'Film oleh ${(media as Film).sutradara}';
+          } else if (media is Buku) {
+            ikon = Icons.book;
+            subtitle = 'Buku oleh ${(media as Buku).penulis}';
+          } else if (media is AlbumMusik) {
+            ikon = Icons.music_note;
+            subtitle = 'Album oleh ${(media as AlbumMusik).artis}';
+          } else {
+            ikon = Icons.perm_media;
+            subtitle = 'Media';
           }
-          
-          return ListTile(
-            leading: Checkbox(
-              value: tugas.isSelesai,
-              onChanged: (value) => _ubahStatusTugas(tugas),
-            ),
-            title: Text(
-              tugas.judul,
-              style: TextStyle(
-                decoration: tugas.isSelesai
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-                color: tugas.isSelesai ? Colors.grey[600] : Colors.black,
-              ),
-            ),
-            // Tampilkan subtitle yang sudah kita siapkan
-            subtitle: Text(subtitle),
-            trailing: IconButton(
-              icon: Icon(Icons.delete, color: Colors.red.shade400),
-              onPressed: () => _hapusTugas(tugas),
+
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: ListTile(
+              leading: Icon(ikon, color: Colors.indigo),
+              title: Text(media.judul),
+              subtitle: Text(subtitle),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () => _bukaHalamanDetail(media),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _tampilkanDialogTambahTugas,
-        tooltip: 'Tambah Tugas Harian',
+        onPressed: () {
+          // TODO: Buat fungsi untuk menambah media baru
+        },
         child: const Icon(Icons.add),
       ),
     );
