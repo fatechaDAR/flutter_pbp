@@ -5,7 +5,8 @@ import 'models/media.dart';
 import 'models/film.dart';
 import 'models/buku.dart';
 import 'models/album_musik.dart';
-import 'detail_page.dart'; // Import halaman detail yang baru
+import 'detail_page.dart';
+import 'add_media_page.dart'; // <-- Import halaman tambah yang baru
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,17 +16,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Data dummy untuk ditampilkan di list
-  // List ini bisa menampung berbagai jenis Media (Polymorphism)
-  final List<Media> _daftarMedia = [
-    Film('Inception', 2010, 'Sci-Fi', 'assets/pudidi.png', 'Christopher Nolan', 148),
-    Buku('Laskar Pelangi', 2005, 'Novel', null, 'Andrea Hirata', 529),
-    AlbumMusik('A Head Full of Dreams', 2015, 'Pop Rock', null, 'Coldplay', 12),
-    Film('The Dark Knight', 2008, 'Action', 'assets/pudidi.png', 'Christopher Nolan', 152),
-    Buku('Bumi Manusia', 1980, 'Sejarah', null, 'Pramoedya Ananta Toer', 535),
-  ];
+  // Daftar media sekarang dimulai dari list kosong
+  final List<Media> _daftarMedia = [];
 
-  // Fungsi untuk navigasi ke halaman detail
   void _bukaHalamanDetail(Media media) {
     Navigator.push(
       context,
@@ -33,6 +26,24 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => DetailPage(media: media),
       ),
     );
+  }
+
+  // Fungsi untuk membuka halaman tambah dan menerima data baru
+  void _bukaHalamanTambahMedia() async {
+    // Tunggu hasil dari AddMediaPage
+    final mediaBaru = await Navigator.push<Media>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddMediaPage(),
+      ),
+    );
+
+    // Jika ada data baru yang dikirim kembali, tambahkan ke list
+    if (mediaBaru != null) {
+      setState(() {
+        _daftarMedia.add(mediaBaru);
+      });
+    }
   }
 
   @override
@@ -43,44 +54,46 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
-      body: ListView.builder(
-        itemCount: _daftarMedia.length,
-        itemBuilder: (context, index) {
-          final media = _daftarMedia[index];
+      body: _daftarMedia.isEmpty
+          ? const Center(
+              child: Text('Koleksi Anda masih kosong.\nTekan tombol + untuk menambah.'),
+            )
+          : ListView.builder(
+              itemCount: _daftarMedia.length,
+              itemBuilder: (context, index) {
+                final media = _daftarMedia[index];
 
-          // Siapkan ikon dan subtitle berdasarkan tipe media
-          IconData ikon;
-          String subtitle;
-          if (media is Film) {
-            ikon = Icons.movie;
-            subtitle = 'Film oleh ${(media as Film).sutradara}';
-          } else if (media is Buku) {
-            ikon = Icons.book;
-            subtitle = 'Buku oleh ${(media as Buku).penulis}';
-          } else if (media is AlbumMusik) {
-            ikon = Icons.music_note;
-            subtitle = 'Album oleh ${(media as AlbumMusik).artis}';
-          } else {
-            ikon = Icons.perm_media;
-            subtitle = 'Media';
-          }
+                IconData ikon;
+                String subtitle;
+                if (media is Film) {
+                  ikon = Icons.movie;
+                  subtitle = 'Film oleh ${(media as Film).sutradara}';
+                } else if (media is Buku) {
+                  ikon = Icons.book;
+                  subtitle = 'Buku oleh ${(media as Buku).penulis}';
+                } else if (media is AlbumMusik) {
+                  ikon = Icons.music_note;
+                  subtitle = 'Album oleh ${(media as AlbumMusik).artis}';
+                } else {
+                  ikon = Icons.perm_media;
+                  subtitle = 'Media';
+                }
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: ListTile(
-              leading: Icon(ikon, color: Colors.indigo),
-              title: Text(media.judul),
-              subtitle: Text(subtitle),
-              trailing: const Icon(Icons.arrow_forward_ios),
-              onTap: () => _bukaHalamanDetail(media),
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    leading: Icon(ikon, color: Colors.indigo),
+                    title: Text(media.judul),
+                    subtitle: Text(subtitle),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => _bukaHalamanDetail(media),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Buat fungsi untuk menambah media baru
-        },
+        onPressed: _bukaHalamanTambahMedia, // <-- Panggil fungsi ini
         child: const Icon(Icons.add),
       ),
     );

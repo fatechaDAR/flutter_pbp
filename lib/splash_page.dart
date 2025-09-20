@@ -25,12 +25,34 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: CircleAvatar(
-          radius: 80,
-          backgroundColor: Colors.transparent,
-          child: Image.asset('assets/pudidi.png'),
-        ),
+      // DIUBAH: Menggunakan Stack untuk menumpuk widget
+      body: Stack(
+        fit: StackFit.expand, // Membuat Stack memenuhi layar
+        children: [
+          // Widget 1: Logo di tengah layar (sama seperti sebelumnya)
+          Center(
+            child: CircleAvatar(
+              radius: 80,
+              backgroundColor: Colors.transparent,
+              child: Image.asset('assets/pudidi.png'),
+            ),
+          ),
+
+          // BARU: Widget 2: Teks kredit di kiri bawah
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0), // Beri jarak dari tepi
+              child: Text(
+                'dibuat oleh techa',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
