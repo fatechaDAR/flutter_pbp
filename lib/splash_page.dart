@@ -13,7 +13,7 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     // Delay 3 detik, lalu pindah ke LoginPage
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 6), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -44,7 +44,7 @@ class _SplashPageState extends State<SplashPage> {
             child: Padding(
               padding: const EdgeInsets.all(24.0), // Beri jarak dari tepi
               child: Text(
-                'dibuat oleh Techa',
+                'Dibuat Oleh Fatecha Dena Angga R.',
                 style: TextStyle(
                   color: const Color.fromARGB(255, 43, 43, 43),
                   fontSize: 14,
