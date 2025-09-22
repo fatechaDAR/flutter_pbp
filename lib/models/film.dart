@@ -5,11 +5,18 @@ class Film extends Media {
   final int _durasiMenit;
   double _ratingBintang;
 
-  Film(String judul, int tahun, String genre, String? url, this._sutradara,
-      this._durasiMenit,
-      {double rating = 0.0, StatusProgress status = StatusProgress.Belum})
-      : _ratingBintang = rating,
-        super(judul, tahun, genre, url, status: status);
+  Film(
+    String judul,
+    int tahun,
+    String genre,
+    String? url,
+    this._sutradara,
+    this._durasiMenit, {
+    double rating = 0.0,
+    StatusProgress status = StatusProgress.Belum,
+    bool isFavorit = false, // BARU
+  })  : _ratingBintang = rating,
+        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); // DIUBAH
 
   String get sutradara => _sutradara;
   int get durasiMenit => _durasiMenit;
@@ -19,13 +26,12 @@ class Film extends Media {
   @override
   Map<String, dynamic> toJson() => {
         'type': 'film',
-        // DIUBAH: Gunakan getter publik (tanpa '_') untuk properti dari Media
         'judul': judul,
         'tahunRilis': tahunRilis,
         'genre': genre,
         'urlGambar': urlGambar,
         'status': status.name,
-        // Properti milik Film sendiri tetap bisa pakai '_'
+        'isFavorit': isFavorit, // BARU
         'sutradara': _sutradara,
         'durasiMenit': _durasiMenit,
         'ratingBintang': _ratingBintang,
@@ -33,10 +39,15 @@ class Film extends Media {
 
   factory Film.fromJson(Map<String, dynamic> map) {
     return Film(
-      map['judul'], map['tahunRilis'], map['genre'], map['urlGambar'],
-      map['sutradara'], map['durasiMenit'],
+      map['judul'],
+      map['tahunRilis'],
+      map['genre'],
+      map['urlGambar'],
+      map['sutradara'],
+      map['durasiMenit'],
       rating: map['ratingBintang'],
       status: StatusProgress.values.byName(map['status']),
+      isFavorit: map['isFavorit'] ?? false, // BARU
     );
   }
 }

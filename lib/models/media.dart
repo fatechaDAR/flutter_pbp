@@ -1,6 +1,5 @@
 // lib/models/media.dart
 
-// BARU: Tambahkan import untuk setiap kelas anak
 import 'film.dart';
 import 'buku.dart';
 import 'album_musik.dart';
@@ -13,11 +12,16 @@ abstract class Media {
   final String _genre;
   final String? _urlGambar;
   StatusProgress _status;
+  bool _isFavorit; // BARU: Properti untuk favorit
 
+  // DIUBAH: Tambahkan isFavorit di konstruktor
   Media(this._judul, this._tahunRilis, this._genre, this._urlGambar,
-      {StatusProgress status = StatusProgress.Belum})
-      : _status = status;
+      {StatusProgress status = StatusProgress.Belum,
+      bool isFavorit = false})
+      : _status = status,
+        _isFavorit = isFavorit;
 
+  // ... getter & setter yang sudah ada
   String get judul => _judul;
   int get tahunRilis => _tahunRilis;
   String get genre => _genre;
@@ -25,10 +29,15 @@ abstract class Media {
   StatusProgress get status => _status;
   set status(StatusProgress statusbaru) => _status = statusbaru;
 
+  // BARU: Getter dan method untuk favorit
+  bool get isFavorit => _isFavorit;
+  void toggleFavorit() {
+    _isFavorit = !_isFavorit;
+  }
+
   Map<String, dynamic> toJson();
 
   factory Media.fromJson(Map<String, dynamic> map) {
-    // Sekarang bagian ini tidak akan error karena sudah di-import
     switch (map['type']) {
       case 'film':
         return Film.fromJson(map);

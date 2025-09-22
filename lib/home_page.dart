@@ -97,6 +97,14 @@ class _HomePageState extends State<HomePage> {
         .showSnackBar(SnackBar(content: Text('${media.judul} dihapus')));
   }
 
+  // BARU: Fungsi untuk mengubah status favorit
+  void _toggleFavoritStatus(Media media) {
+    setState(() {
+      media.toggleFavorit();
+    });
+    _saveMedia(); // Langsung simpan perubahan
+  }
+
   List<Media> get mediaYangDitampilkan {
     List<Media> hasil;
     if (_filterAktif != null) {
@@ -177,14 +185,29 @@ class _HomePageState extends State<HomePage> {
                   background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.symmetric(horizontal: 20), child: const Icon(Icons.delete, color: Colors.white)),
                   onDismissed: (direction) => _hapusMedia(media),
                   child: Card(
+                    // DIUBAH: Tambahkan warna latar belakang jika favorit
+                    color: media.isFavorit ? Colors.amber.shade100 : null,
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
                       leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),
                       title: Text(media.judul),
                       subtitle: Text(subtitle),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.grey),
-                        onPressed: () => _bukaHalamanEditMedia(index),
+                      // DIUBAH: Trailing sekarang berisi 2 tombol
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              media.isFavorit ? Icons.favorite : Icons.favorite_border,
+                              color: Colors.redAccent,
+                            ),
+                            onPressed: () => _toggleFavoritStatus(media),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.grey),
+                            onPressed: () => _bukaHalamanEditMedia(index),
+                          ),
+                        ],
                       ),
                       onTap: () => _bukaHalamanDetail(media),
                     ),

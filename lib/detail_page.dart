@@ -1,11 +1,11 @@
 // lib/detail_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'models/media.dart';
 import 'models/film.dart';
 import 'models/buku.dart';
 import 'models/album_musik.dart';
-import 'package:intl/intl.dart';
 
 class DetailPage extends StatefulWidget {
   final Media media;
@@ -29,7 +29,6 @@ class _DetailPageState extends State<DetailPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // Kirim sinyal 'true' jika ada perubahan, agar HomePage bisa save
         Navigator.pop(context, _adaPerubahan);
         return true;
       },
@@ -44,49 +43,43 @@ class _DetailPageState extends State<DetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.asset(
-                    widget.media.urlGambar ?? 'assets/pudidi.png',
-                    height: 250, fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Image.asset('assets/pudidi.png', height: 250, fit: BoxFit.cover);
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(widget.media.judul, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+              // BAGIAN GAMBAR/LOGO DIHAPUS DARI SINI
+
+              Text(widget.media.judul,
+                  style: const TextStyle(
+                      fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Rilis: ${widget.media.tahunRilis} | Genre: ${widget.media.genre}', style: const TextStyle(fontSize: 16, color: Colors.grey)),
+              Text('Rilis: ${widget.media.tahunRilis} | Genre: ${widget.media.genre}',
+                  style: const TextStyle(fontSize: 16, color: Colors.grey)),
               const Divider(height: 32),
               
-              const Text('Status Progress:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Status Progress:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 8),
-
-              // ==========================================================
-              // PERBAIKAN UTAMA ADA DI SINI
-              // ==========================================================
               SegmentedButton<StatusProgress>(
                 segments: const [
-                  ButtonSegment(value: StatusProgress.Belum, label: Text('Belum'), icon: Icon(Icons.watch_later_outlined)),
-                  ButtonSegment(value: StatusProgress.Sedang, label: Text('Sedang'), icon: Icon(Icons.watch_later)),
-                  ButtonSegment(value: StatusProgress.Selesai, label: Text('Selesai'), icon: Icon(Icons.check_circle)),
+                  ButtonSegment(
+                      value: StatusProgress.Belum,
+                      label: Text('Belum'),
+                      icon: Icon(Icons.watch_later_outlined)),
+                  ButtonSegment(
+                      value: StatusProgress.Sedang,
+                      label: Text('Sedang'),
+                      icon: Icon(Icons.watch_later)),
+                  ButtonSegment(
+                      value: StatusProgress.Selesai,
+                      label: Text('Selesai'),
+                      icon: Icon(Icons.check_circle)),
                 ],
                 selected: {_statusSaatIni},
                 onSelectionChanged: (Set<StatusProgress> statusBaru) {
                   setState(() {
                     _statusSaatIni = statusBaru.first;
                     widget.media.status = statusBaru.first;
-                    _adaPerubahan = true; // Tandai ada perubahan
+                    _adaPerubahan = true;
                   });
                 },
               ),
-              // ==========================================================
-              // AKHIR DARI PERBAIKAN
-              // ==========================================================
-
               const Divider(height: 32),
 
               if (widget.media is Film) ...[
@@ -108,13 +101,17 @@ class _DetailPageState extends State<DetailPage> {
       ),
     );
   }
-  
+
   Widget _buildDetailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row( crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+            width: 120,
+            child: Text(label,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 16))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
       ]),
     );
   }
@@ -123,24 +120,36 @@ class _DetailPageState extends State<DetailPage> {
     List<Widget> stars = [];
     for (int i = 0; i < 5; i++) {
       Icon icon;
-      if (i < rating.floor()) { icon = const Icon(Icons.star, color: Colors.amber); } 
-      else if (i < rating) { icon = const Icon(Icons.star_half, color: Colors.amber); } 
-      else { icon = const Icon(Icons.star_border, color: Colors.amber); }
+      if (i < rating.floor()) {
+        icon = const Icon(Icons.star, color: Colors.amber);
+      } else if (i < rating) {
+        icon = const Icon(Icons.star_half, color: Colors.amber);
+      } else {
+        icon = const Icon(Icons.star_border, color: Colors.amber);
+      }
       stars.add(icon);
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(children: [const SizedBox(width: 120, child: Text('Rating:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))), ...stars]),
+      child: Row(children: [
+        const SizedBox(
+            width: 120,
+            child: Text('Rating:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
+        ...stars
+      ]),
     );
   }
-  
+
   Widget _buildCatatan(String catatan) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Catatan Pribadi:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(catatan, style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Catatan Pribadi:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 4),
+        Text(catatan,
+            style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
       ]),
     );
   }

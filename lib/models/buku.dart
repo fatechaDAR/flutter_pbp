@@ -5,11 +5,18 @@ class Buku extends Media {
   final int _jumlahHalaman;
   String _catatanPribadi;
 
-  Buku(String judul, int tahun, String genre, String? url, this._penulis,
-      this._jumlahHalaman,
-      {String catatan = '', StatusProgress status = StatusProgress.Belum})
-      : _catatanPribadi = catatan,
-        super(judul, tahun, genre, url, status: status);
+  Buku(
+    String judul,
+    int tahun,
+    String genre,
+    String? url,
+    this._penulis,
+    this._jumlahHalaman, {
+    String catatan = '',
+    StatusProgress status = StatusProgress.Belum,
+    bool isFavorit = false, // BARU
+  })  : _catatanPribadi = catatan,
+        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); // DIUBAH
 
   String get penulis => _penulis;
   int get jumlahHalaman => _jumlahHalaman;
@@ -19,12 +26,12 @@ class Buku extends Media {
   @override
   Map<String, dynamic> toJson() => {
         'type': 'buku',
-        // DIUBAH: Gunakan getter publik
         'judul': judul,
         'tahunRilis': tahunRilis,
         'genre': genre,
         'urlGambar': urlGambar,
         'status': status.name,
+        'isFavorit': isFavorit, // BARU
         'penulis': _penulis,
         'jumlahHalaman': _jumlahHalaman,
         'catatanPribadi': _catatanPribadi,
@@ -32,10 +39,15 @@ class Buku extends Media {
 
   factory Buku.fromJson(Map<String, dynamic> map) {
     return Buku(
-      map['judul'], map['tahunRilis'], map['genre'], map['urlGambar'],
-      map['penulis'], map['jumlahHalaman'],
+      map['judul'],
+      map['tahunRilis'],
+      map['genre'],
+      map['urlGambar'],
+      map['penulis'],
+      map['jumlahHalaman'],
       catatan: map['catatanPribadi'],
       status: StatusProgress.values.byName(map['status']),
+      isFavorit: map['isFavorit'] ?? false, // BARU
     );
   }
 }
