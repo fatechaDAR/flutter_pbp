@@ -186,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                   onDismissed: (direction) => _hapusMedia(media),
                   child: Card(
                     // DIUBAH: Tambahkan warna latar belakang jika favorit
-                    color: media.isFavorit ? Colors.amber.shade100 : null,
+                    color: media.isFavorit ? const Color.fromARGB(255, 28, 173, 199) : null,
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
                       leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),

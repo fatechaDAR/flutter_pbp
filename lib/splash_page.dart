@@ -34,7 +34,7 @@ class _SplashPageState extends State<SplashPage> {
             child: CircleAvatar(
               radius: 80,
               backgroundColor: Colors.transparent,
-              child: Image.asset('assets/pudidi.png'),
+              child: Image.asset('assets/logo.png'),
             ),
           ),
 
@@ -44,9 +44,9 @@ class _SplashPageState extends State<SplashPage> {
             child: Padding(
               padding: const EdgeInsets.all(24.0), // Beri jarak dari tepi
               child: Text(
-                'dibuat oleh techa',
+                'dibuat oleh Techa',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: const Color.fromARGB(255, 43, 43, 43),
                   fontSize: 14,
                 ),
               ),

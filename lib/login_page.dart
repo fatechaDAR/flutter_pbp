@@ -9,7 +9,7 @@ class LoginPage extends StatelessWidget {
     final logo = CircleAvatar(
       radius: 56,
       backgroundColor: Colors.transparent,
-      child: Image.asset('assets/pudidi.png'),
+      child: Image.asset('assets/logo.png'),
     );
 
     return Scaffold(
