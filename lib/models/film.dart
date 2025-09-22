@@ -14,9 +14,9 @@ class Film extends Media {
     this._durasiMenit, {
     double rating = 0.0,
     StatusProgress status = StatusProgress.Belum,
-    bool isFavorit = false, // BARU
+    bool isFavorit = false, 
   })  : _ratingBintang = rating,
-        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); // DIUBAH
+        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); 
 
   String get sutradara => _sutradara;
   int get durasiMenit => _durasiMenit;
@@ -31,7 +31,7 @@ class Film extends Media {
         'genre': genre,
         'urlGambar': urlGambar,
         'status': status.name,
-        'isFavorit': isFavorit, // BARU
+        'isFavorit': isFavorit, 
         'sutradara': _sutradara,
         'durasiMenit': _durasiMenit,
         'ratingBintang': _ratingBintang,
@@ -47,7 +47,7 @@ class Film extends Media {
       map['durasiMenit'],
       rating: map['ratingBintang'],
       status: StatusProgress.values.byName(map['status']),
-      isFavorit: map['isFavorit'] ?? false, // BARU
+      isFavorit: map['isFavorit'] ?? false, 
     );
   }
 }

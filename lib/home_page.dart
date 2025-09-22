@@ -97,12 +97,12 @@ class _HomePageState extends State<HomePage> {
         .showSnackBar(SnackBar(content: Text('${media.judul} dihapus')));
   }
 
-  // BARU: Fungsi untuk mengubah status favorit
+  
   void _toggleFavoritStatus(Media media) {
     setState(() {
       media.toggleFavorit();
     });
-    _saveMedia(); // Langsung simpan perubahan
+    _saveMedia(); 
   }
 
   List<Media> get mediaYangDitampilkan {
@@ -192,7 +192,7 @@ class _HomePageState extends State<HomePage> {
                       leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),
                       title: Text(media.judul),
                       subtitle: Text(subtitle),
-                      // DIUBAH: Trailing sekarang berisi 2 tombol
+                      
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

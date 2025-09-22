@@ -9,7 +9,8 @@ class LoginPage extends StatelessWidget {
     final logo = CircleAvatar(
       radius: 56,
       backgroundColor: Colors.transparent,
-      child: Image.asset('assets/logo.png'),
+      
+      child: Image.asset('assets/logo.png'), 
     );
 
     return Scaffold(
@@ -21,9 +22,18 @@ class LoginPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               logo,
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
 
-              // Email
+              const Text(
+                'Page & Play',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                ),
+              ),
+              const SizedBox(height: 48),
+
               const TextField(
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -32,7 +42,6 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Password
               const TextField(
                 obscureText: true,
                 decoration: InputDecoration(
@@ -42,12 +51,11 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Tombol Login
               SizedBox(
                 width: 200,
                 child: FilledButton(
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (_) => const HomePage()),
                     );

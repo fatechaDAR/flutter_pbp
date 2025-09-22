@@ -14,9 +14,9 @@ class Buku extends Media {
     this._jumlahHalaman, {
     String catatan = '',
     StatusProgress status = StatusProgress.Belum,
-    bool isFavorit = false, // BARU
+    bool isFavorit = false, 
   })  : _catatanPribadi = catatan,
-        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); // DIUBAH
+        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); 
 
   String get penulis => _penulis;
   int get jumlahHalaman => _jumlahHalaman;
@@ -31,7 +31,7 @@ class Buku extends Media {
         'genre': genre,
         'urlGambar': urlGambar,
         'status': status.name,
-        'isFavorit': isFavorit, // BARU
+        'isFavorit': isFavorit, 
         'penulis': _penulis,
         'jumlahHalaman': _jumlahHalaman,
         'catatanPribadi': _catatanPribadi,
@@ -47,7 +47,7 @@ class Buku extends Media {
       map['jumlahHalaman'],
       catatan: map['catatanPribadi'],
       status: StatusProgress.values.byName(map['status']),
-      isFavorit: map['isFavorit'] ?? false, // BARU
+      isFavorit: map['isFavorit'] ?? false, 
     );
   }
 }

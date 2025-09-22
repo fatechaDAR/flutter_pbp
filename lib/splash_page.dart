@@ -12,8 +12,8 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    // Delay 3 detik, lalu pindah ke LoginPage
-    Future.delayed(const Duration(seconds: 3), () {
+    
+    Future.delayed(const Duration(seconds: 6), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -25,11 +25,11 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // DIUBAH: Menggunakan Stack untuk menumpuk widget
+      
       body: Stack(
-        fit: StackFit.expand, // Membuat Stack memenuhi layar
+        fit: StackFit.expand, 
         children: [
-          // Widget 1: Logo di tengah layar (sama seperti sebelumnya)
+
           Center(
             child: CircleAvatar(
               radius: 80,
@@ -38,13 +38,13 @@ class _SplashPageState extends State<SplashPage> {
             ),
           ),
 
-          // BARU: Widget 2: Teks kredit di kiri bawah
+          
           Align(
             alignment: Alignment.bottomLeft,
             child: Padding(
-              padding: const EdgeInsets.all(24.0), // Beri jarak dari tepi
+              padding: const EdgeInsets.all(24.0), 
               child: Text(
-                'dibuat oleh Techa',
+                'Dibuat Oleh Fatecha Dena Angga R',
                 style: TextStyle(
                   color: const Color.fromARGB(255, 43, 43, 43),
                   fontSize: 14,

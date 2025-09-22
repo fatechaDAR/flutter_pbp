@@ -12,7 +12,7 @@ class AlbumMusik extends Media {
     this._artis,
     this._jumlahLagu, {
     StatusProgress status = StatusProgress.Belum,
-    bool isFavorit = false, // BARU
+    bool isFavorit = false, 
   }) : super(judul, tahun, genre, url, status: status, isFavorit: isFavorit); // DIUBAH
 
   String get artis => _artis;
@@ -26,7 +26,7 @@ class AlbumMusik extends Media {
         'genre': genre,
         'urlGambar': urlGambar,
         'status': status.name,
-        'isFavorit': isFavorit, // BARU
+        'isFavorit': isFavorit, 
         'artis': _artis,
         'jumlahLagu': _jumlahLagu,
       };
@@ -40,7 +40,7 @@ class AlbumMusik extends Media {
       map['artis'],
       map['jumlahLagu'],
       status: StatusProgress.values.byName(map['status']),
-      isFavorit: map['isFavorit'] ?? false, // BARU
+      isFavorit: map['isFavorit'] ?? false, 
     );
   }
 }

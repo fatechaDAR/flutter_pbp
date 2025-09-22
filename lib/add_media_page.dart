@@ -21,18 +21,18 @@ class _AddMediaPageState extends State<AddMediaPage> {
   late TipeMedia _tipeMedia;
   bool get _isEditing => widget.mediaToEdit != null;
 
-  // ... controllers umum
+  
   final _judulController = TextEditingController();
   final _tahunController = TextEditingController();
   final _genreController = TextEditingController();
-  // ... controllers spesifik
+
   final _sutradaraController = TextEditingController();
   final _durasiController = TextEditingController();
   final _penulisController = TextEditingController();
   final _halamanController = TextEditingController();
   final _artisController = TextEditingController();
   final _laguController = TextEditingController();
-  // BARU: Controller & variabel untuk rating dan catatan
+  
   final _catatanController = TextEditingController();
   double _rating = 0.0;
 
@@ -49,12 +49,12 @@ class _AddMediaPageState extends State<AddMediaPage> {
         _tipeMedia = TipeMedia.Film;
         _sutradaraController.text = media.sutradara;
         _durasiController.text = media.durasiMenit.toString();
-        _rating = media.ratingBintang; // BARU
+        _rating = media.ratingBintang; 
       } else if (media is Buku) {
         _tipeMedia = TipeMedia.Buku;
         _penulisController.text = media.penulis;
         _halamanController.text = media.jumlahHalaman.toString();
-        _catatanController.text = media.catatanPribadi; // BARU
+        _catatanController.text = media.catatanPribadi; 
       } else if (media is AlbumMusik) {
         _tipeMedia = TipeMedia.AlbumMusik;
         _artisController.text = media.artis;
@@ -75,11 +75,11 @@ class _AddMediaPageState extends State<AddMediaPage> {
       switch (_tipeMedia) {
         case TipeMedia.Film:
           mediaBaru = Film(judul, tahun, genre, null, _sutradaraController.text,
-              int.parse(_durasiController.text), rating: _rating); // DIUBAH
+              int.parse(_durasiController.text), rating: _rating); 
           break;
         case TipeMedia.Buku:
           mediaBaru = Buku(judul, tahun, genre, null, _penulisController.text,
-              int.parse(_halamanController.text), catatan: _catatanController.text); // DIUBAH
+              int.parse(_halamanController.text), catatan: _catatanController.text); 
           break;
         case TipeMedia.AlbumMusik:
           mediaBaru = AlbumMusik(judul, tahun, genre, null,
@@ -105,7 +105,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ... form umum tidak berubah ...
+              
               DropdownButtonFormField<TipeMedia>(
                 value: _tipeMedia,
                 decoration: const InputDecoration(labelText: 'Tipe Media'),
@@ -135,7 +135,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
               ] else if (_tipeMedia == TipeMedia.Buku) ...[
                 TextFormField(controller: _penulisController, decoration: const InputDecoration(labelText: 'Penulis')),
                 TextFormField(controller: _halamanController, decoration: const InputDecoration(labelText: 'Jumlah Halaman'), keyboardType: TextInputType.number),
-                // BARU: Input Catatan Pribadi
+                
                 TextFormField(controller: _catatanController, decoration: const InputDecoration(labelText: 'Catatan Pribadi'), maxLines: 3),
               ] else if (_tipeMedia == TipeMedia.AlbumMusik) ...[
                 TextFormField(controller: _artisController, decoration: const InputDecoration(labelText: 'Artis')),
