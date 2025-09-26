@@ -7,7 +7,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logo = CircleAvatar(
-      radius: 56,
+      radius: 112,
       backgroundColor: Colors.transparent,
       
       child: Image.asset('assets/logo.png'), 

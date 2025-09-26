@@ -182,11 +182,11 @@ class _HomePageState extends State<HomePage> {
                 return Dismissible(
                   key: Key(media.judul + media.tahunRilis.toString()),
                   direction: DismissDirection.endToStart,
-                  background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.symmetric(horizontal: 20), child: const Icon(Icons.delete, color: Colors.white)),
+                  background: Container(color: const Color.fromARGB(255, 231, 35, 21), alignment: Alignment.centerRight, padding: const EdgeInsets.symmetric(horizontal: 20), child: const Icon(Icons.delete, color: Colors.white)),
                   onDismissed: (direction) => _hapusMedia(media),
                   child: Card(
                     // DIUBAH: Tambahkan warna latar belakang jika favorit
-                    color: media.isFavorit ? const Color.fromARGB(255, 28, 173, 199) : null,
+                    color: media.isFavorit ? const Color.fromARGB(255, 134, 192, 202) : null,
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
                       leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),
