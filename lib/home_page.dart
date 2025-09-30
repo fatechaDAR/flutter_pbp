@@ -2,6 +2,8 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:device_info_plus/device_info_plus.dart'; // BARU: Import package
+import 'package:flutter/foundation.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'models/media.dart';
@@ -26,11 +28,40 @@ class _HomePageState extends State<HomePage> {
   
   TipeMediaFilter? _filterAktif;
   UrutkanBerdasarkan _urutanAktif = UrutkanBerdasarkan.Judul;
+  
+  // BARU: Variabel untuk menyimpan data perangkat
+  Map<String, dynamic> _deviceData = <String, dynamic>{};
 
   @override
   void initState() {
     super.initState();
     _loadMedia();
+    _initDeviceInfo(); // BARU: Panggil fungsi untuk mengambil info perangkat
+  }
+
+  // BARU: Fungsi untuk mengambil informasi perangkat
+  Future<void> _initDeviceInfo() async {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    Map<String, dynamic> data = {};
+    
+    // Karena Anda menggunakan Codespaces (basis Web), kita ambil WebBrowserInfo
+    try {
+      // Periksa apakah aplikasi berjalan di platform web
+      if (kIsWeb) {
+        data = (await deviceInfoPlugin.webBrowserInfo).data;
+      } else {
+        // Tambahkan logika untuk platform lain jika perlu, misal Android
+        // data = (await deviceInfoPlugin.androidInfo).data;
+      }
+    } catch (e) {
+      data = {'Error': 'Gagal mendapatkan info perangkat'};
+    }
+
+    if (mounted) {
+      setState(() {
+        _deviceData = data;
+      });
+    }
   }
 
   Future<void> _loadMedia() async {
@@ -96,7 +127,6 @@ class _HomePageState extends State<HomePage> {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text('${media.judul} dihapus')));
   }
-
   
   void _toggleFavoritStatus(Media media) {
     setState(() {
@@ -138,10 +168,29 @@ class _HomePageState extends State<HomePage> {
     }
     return Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // BARU: Drawer (Menu Samping) ditambahkan di sini
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.indigo),
+              child: Text('Info Perangkat', style: TextStyle(color: Colors.white, fontSize: 24)),
+            ),
+            // Tampilkan setiap item dari info perangkat
+            ..._deviceData.entries.map((entry) {
+              return ListTile(
+                title: Text(entry.key),
+                subtitle: Text(entry.value.toString(), maxLines: 2, overflow: TextOverflow.ellipsis),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
       appBar: AppBar(
         title: const Text('Koleksi Media'),
         backgroundColor: Colors.indigo,
@@ -182,17 +231,15 @@ class _HomePageState extends State<HomePage> {
                 return Dismissible(
                   key: Key(media.judul + media.tahunRilis.toString()),
                   direction: DismissDirection.endToStart,
-                  background: Container(color: const Color.fromARGB(255, 231, 35, 21), alignment: Alignment.centerRight, padding: const EdgeInsets.symmetric(horizontal: 20), child: const Icon(Icons.delete, color: Colors.white)),
+                  background: Container(color: Colors.red, alignment: Alignment.centerRight, padding: const EdgeInsets.symmetric(horizontal: 20), child: const Icon(Icons.delete, color: Colors.white)),
                   onDismissed: (direction) => _hapusMedia(media),
                   child: Card(
-                    // DIUBAH: Tambahkan warna latar belakang jika favorit
-                    color: media.isFavorit ? const Color.fromARGB(255, 134, 192, 202) : null,
+                    color: media.isFavorit ? Colors.amber.shade100 : null,
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
                       leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),
                       title: Text(media.judul),
                       subtitle: Text(subtitle),
-                      
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
