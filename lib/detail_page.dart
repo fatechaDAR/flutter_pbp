@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart'; // BARU: Import url_launcher
+import 'package:url_launcher/url_launcher.dart'; 
 import 'models/media.dart';
 import 'models/film.dart';
-import 'models/buku.dart';
+import 'models/buku.dart'; 
 import 'models/album_musik.dart';
-// import 'webview_page.dart'; // DIHAPUS
+
 
 class DetailPage extends StatefulWidget {
   final Media media;
@@ -27,7 +27,7 @@ class _DetailPageState extends State<DetailPage> {
     _statusSaatIni = widget.media.status;
   }
 
-  // DIUBAH: Fungsi ini sekarang menggunakan url_launcher
+  
   Future<void> _bukaUrlEksternal() async {
     String searchEngine;
     if (widget.media is Film) {
@@ -42,9 +42,9 @@ class _DetailPageState extends State<DetailPage> {
     final Uri url = Uri.parse(urlString);
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication); // Membuka di tab/aplikasi baru
+      await launchUrl(url, mode: LaunchMode.externalApplication); 
     } else {
-      // Tampilkan pesan error jika tidak bisa membuka URL
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Tidak bisa membuka URL: $urlString')),
       );
@@ -112,7 +112,10 @@ class _DetailPageState extends State<DetailPage> {
                 _buildRatingStars((widget.media as Film).ratingBintang),
               ] else if (widget.media is Buku) ...[
                 _buildDetailRow('Penulis:', (widget.media as Buku).penulis),
-                _buildDetailRow('Halaman:', '${(widget.media as Buku).jumlahHalaman} halaman'),
+                _buildDetailRow('Jumlah Halaman:', '${(widget.media as Buku).jumlahHalaman} halaman'),
+                
+                if ((widget.media as Buku).halamanDibaca > 0)
+                  _buildDetailRow('Sudah Dibaca:', '${(widget.media as Buku).halamanDibaca} halaman'),
                 if ((widget.media as Buku).catatanPribadi.isNotEmpty)
                   _buildCatatan((widget.media as Buku).catatanPribadi),
               ] else if (widget.media is AlbumMusik) ...[
@@ -122,7 +125,7 @@ class _DetailPageState extends State<DetailPage> {
 
               const SizedBox(height: 24),
 
-              // Tombol sekarang memanggil _bukaUrlEksternal
+              
               Center(
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.public),
