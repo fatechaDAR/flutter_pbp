@@ -27,19 +27,31 @@ jobs:
       - name: Get Flutter dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
+      - name: Build Flutter Web with Correct Base HREF
         run: |
-          # Penting: Pastikan base-href ini sesuai dengan path GitHub Pages Anda
+          # Pastikan Flutter Web diaktifkan untuk build
+          flutter config --enable-web
+
+          # Bangun aplikasi web dengan base-href yang benar
           # /${{ github.event.repo.name }}/ akan menjadi /flutter_pbp/
+          # Pastikan web-renderer html digunakan untuk konsistensi dan kompatibilitas
           flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html
 
+      - name: Verify Base HREF in index.html (Debug Step) # BARU: Untuk verifikasi
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Contents of build/web directory:"
+          ls -R build/web
+          echo "Content of index.html after build:"
+          cat build/web/index.html | grep '<base href'
+
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4 # DIUBAH: Gunakan v4
+        uses: peaceiris/actions-gh-pages@v4
         if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
-          # BARU: Secara eksplisit tentukan base_url untuk Pages
-          # Ini akan memastikan tag <base> di index.html benar-benar diupdate oleh action deploy
-          base_url: /${{ github.event.repo.name }}/ # BARU
-          # CNAME: your-custom-domain.com # Hapus atau komen baris ini jika tidak menggunakan custom domain
+          # HAPUS BARIS INI: base_url: /${{ github.event.repo.name }}/
+          # Kita akan mengandalkan base-href yang sudah benar dari build Flutter
+          # dan `peaceiris` tidak boleh mengubahnya jika sudah benar.
+          # CNAME: your-custom-domain.com
