@@ -5,10 +5,10 @@ on:
     branches:
       - main # Ganti jika branch utama Anda bukan 'main'
 
-permissions: # BARU: Tambahkan blok ini
+permissions:
   contents: write
-  pages: write # BARU: Izin untuk menulis ke GitHub Pages
-  id-token: write # BARU: Diperlukan untuk OIDC jika Pages ingin digunakan secara aman
+  pages: write
+  id-token: write
 
 jobs:
   build_and_deploy:
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2' # Gunakan versi Flutter Anda
+          flutter-version: '3.22.2' # Pastikan ini versi Flutter Anda
           channel: 'stable'
 
       - name: Get Flutter dependencies
@@ -29,15 +29,17 @@ jobs:
 
       - name: Build Flutter Web
         run: |
-          flutter config --enable-web # Pastikan ini diaktifkan
+          # Penting: Pastikan base-href ini sesuai dengan path GitHub Pages Anda
+          # /${{ github.event.repo.name }}/ akan menjadi /flutter_pbp/
           flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html
-          # Jika masih ada masalah, coba tambahkan --no-sound-null-safety jika proyek Anda lama atau ada isu kompatibilitas.
-          # flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html --no-sound-null-safety
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.ref == 'refs/heads/main' }} # Deploy hanya dari branch 'main'
+        uses: peaceiris/actions-gh-pages@v4 # DIUBAH: Gunakan v4
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
+          # BARU: Secara eksplisit tentukan base_url untuk Pages
+          # Ini akan memastikan tag <base> di index.html benar-benar diupdate oleh action deploy
+          base_url: /${{ github.event.repo.name }}/ # BARU
           # CNAME: your-custom-domain.com # Hapus atau komen baris ini jika tidak menggunakan custom domain
