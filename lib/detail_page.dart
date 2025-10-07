@@ -2,10 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart'; // BARU: Import url_launcher
 import 'models/media.dart';
 import 'models/film.dart';
 import 'models/buku.dart';
 import 'models/album_musik.dart';
+// import 'webview_page.dart'; // DIHAPUS
 
 class DetailPage extends StatefulWidget {
   final Media media;
@@ -23,6 +25,30 @@ class _DetailPageState extends State<DetailPage> {
   void initState() {
     super.initState();
     _statusSaatIni = widget.media.status;
+  }
+
+  // DIUBAH: Fungsi ini sekarang menggunakan url_launcher
+  Future<void> _bukaUrlEksternal() async {
+    String searchEngine;
+    if (widget.media is Film) {
+      searchEngine = 'https://www.imdb.com/find?q=';
+    } else if (widget.media is Buku) {
+      searchEngine = 'https://www.goodreads.com/search?q=';
+    } else {
+      searchEngine = 'https://www.google.com/search?q=';
+    }
+
+    final String urlString = searchEngine + Uri.encodeComponent(widget.media.judul);
+    final Uri url = Uri.parse(urlString);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication); // Membuka di tab/aplikasi baru
+    } else {
+      // Tampilkan pesan error jika tidak bisa membuka URL
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak bisa membuka URL: $urlString')),
+      );
+    }
   }
 
   @override
@@ -43,8 +69,6 @@ class _DetailPageState extends State<DetailPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
-
               Text(widget.media.judul,
                   style: const TextStyle(
                       fontSize: 28, fontWeight: FontWeight.bold)),
@@ -95,6 +119,17 @@ class _DetailPageState extends State<DetailPage> {
                 _buildDetailRow('Artis:', (widget.media as AlbumMusik).artis),
                 _buildDetailRow('Jumlah Lagu:', '${(widget.media as AlbumMusik).jumlahLagu} lagu'),
               ],
+
+              const SizedBox(height: 24),
+
+              // Tombol sekarang memanggil _bukaUrlEksternal
+              Center(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.public),
+                  label: const Text('Lihat Info Online'),
+                  onPressed: _bukaUrlEksternal,
+                ),
+              ),
             ],
           ),
         ),
@@ -140,7 +175,7 @@ class _DetailPageState extends State<DetailPage> {
       ]),
     );
   }
-
+  
   Widget _buildCatatan(String catatan) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
