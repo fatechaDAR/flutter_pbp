@@ -28,7 +28,11 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html
+        run: |
+          flutter config --enable-web # Pastikan ini diaktifkan
+          flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html
+          # Jika masih ada masalah, coba tambahkan --no-sound-null-safety jika proyek Anda lama atau ada isu kompatibilitas.
+          # flutter build web --release --base-href /${{ github.event.repo.name }}/ --web-renderer html --no-sound-null-safety
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
