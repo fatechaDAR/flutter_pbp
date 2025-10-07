@@ -5,6 +5,11 @@ on:
     branches:
       - main # Ganti jika branch utama Anda bukan 'main'
 
+permissions: # BARU: Tambahkan blok ini
+  contents: write
+  pages: write # BARU: Izin untuk menulis ke GitHub Pages
+  id-token: write # BARU: Diperlukan untuk OIDC jika Pages ingin digunakan secara aman
+
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
