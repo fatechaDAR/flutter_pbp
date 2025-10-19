@@ -4,38 +4,35 @@ import 'media.dart';
 
 class Buku extends Media {
   final String _penulis;
-  final int _jumlahHalaman;
   String _catatanPribadi;
-  int _halamanDibaca; // BARU: Properti untuk halaman yang sudah dibaca
+  int _halamanDibaca; // Properti untuk halaman yang sudah dibaca
 
   Buku(
     String judul,
     int tahun,
     String genre,
     String? url,
-    this._penulis,
-    this._jumlahHalaman, {
+    this._penulis, {
     String catatan = '',
     StatusProgress status = StatusProgress.Belum,
     bool isFavorit = false,
-    int halamanDibaca = 0, // BARU: Parameter halamanDibaca di konstruktor
+    int halamanDibaca = 0,
   })  : _catatanPribadi = catatan,
-        _halamanDibaca = halamanDibaca, // BARU: Inisialisasi _halamanDibaca
+        _halamanDibaca = halamanDibaca,
         super(judul, tahun, genre, url, status: status, isFavorit: isFavorit) {
-    // Tambahkan assertion untuk memastikan halamanDibaca tidak melebihi total halaman
-    assert(halamanDibaca <= _jumlahHalaman, 'Halaman yang dibaca tidak boleh melebihi jumlah halaman total');
+    // Tidak ada batasan atas karena kita tidak lagi menyimpan jumlah total halaman
+    assert(halamanDibaca >= 0, 'Halaman yang dibaca harus bernilai >= 0');
   }
 
   // Getters
   String get penulis => _penulis;
-  int get jumlahHalaman => _jumlahHalaman;
   String get catatanPribadi => _catatanPribadi;
-  int get halamanDibaca => _halamanDibaca; // BARU: Getter untuk halamanDibaca
+  int get halamanDibaca => _halamanDibaca;
 
-  // Setters (jika properti perlu diubah setelah pembuatan objek)
+  // Setters
   set catatanPribadi(String catatan) => _catatanPribadi = catatan;
-  set halamanDibaca(int dibaca) { // BARU: Setter untuk halamanDibaca
-    assert(dibaca >= 0 && dibaca <= _jumlahHalaman, 'Halaman yang dibaca harus valid dan tidak melebihi total halaman');
+  set halamanDibaca(int dibaca) {
+    assert(dibaca >= 0, 'Halaman yang dibaca harus valid (>= 0)');
     _halamanDibaca = dibaca;
   }
 
@@ -49,9 +46,8 @@ class Buku extends Media {
         'status': status.name,
         'isFavorit': isFavorit,
         'penulis': _penulis,
-        'jumlahHalaman': _jumlahHalaman,
         'catatanPribadi': _catatanPribadi,
-        'halamanDibaca': _halamanDibaca, // BARU: Tambahkan ke JSON
+        'halamanDibaca': _halamanDibaca,
       };
 
   factory Buku.fromJson(Map<String, dynamic> map) {
@@ -61,11 +57,10 @@ class Buku extends Media {
       map['genre'],
       map['urlGambar'],
       map['penulis'],
-      map['jumlahHalaman'],
-      catatan: map['catatanPribadi'] ?? '', // Pastikan default string kosong
+      catatan: map['catatanPribadi'] ?? '',
       status: StatusProgress.values.byName(map['status']),
       isFavorit: map['isFavorit'] ?? false,
-      halamanDibaca: map['halamanDibaca'] ?? 0, // BARU: Ambil dari JSON, default 0
+      halamanDibaca: map['halamanDibaca'] ?? 0,
     );
   }
 }

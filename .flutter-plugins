@@ -15,3 +15,6 @@ url_launcher_linux=/home/codespace/.pub-cache/hosted/pub.dev/url_launcher_linux-
 url_launcher_macos=/home/codespace/.pub-cache/hosted/pub.dev/url_launcher_macos-3.2.2/
 url_launcher_web=/home/codespace/.pub-cache/hosted/pub.dev/url_launcher_web-2.3.3/
 url_launcher_windows=/home/codespace/.pub-cache/hosted/pub.dev/url_launcher_windows-3.1.4/
+webview_flutter=/home/codespace/.pub-cache/hosted/pub.dev/webview_flutter-4.8.0/
+webview_flutter_android=/home/codespace/.pub-cache/hosted/pub.dev/webview_flutter_android-3.16.8/
+webview_flutter_wkwebview=/home/codespace/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.14.0/

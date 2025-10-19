@@ -34,7 +34,6 @@ class _AddMediaPageState extends State<AddMediaPage> {
 
   // Controller spesifik Buku
   final _penulisController = TextEditingController();
-  final _halamanController = TextEditingController(); 
   final _catatanController = TextEditingController();
   final _halamanDibacaController = TextEditingController(); 
 
@@ -64,10 +63,9 @@ class _AddMediaPageState extends State<AddMediaPage> {
         _sutradaraController.text = media.sutradara;
         _durasiController.text = media.durasiMenit.toString();
         _rating = media.ratingBintang;
-      } else if (media is Buku) {
+        } else if (media is Buku) {
         _tipeMedia = TipeMedia.Buku;
         _penulisController.text = media.penulis;
-        _halamanController.text = media.jumlahHalaman.toString();
         _catatanController.text = media.catatanPribadi;
         _halamanDibacaController.text = media.halamanDibaca.toString(); // BARU: Load halaman dibaca
       } else if (media is AlbumMusik) {
@@ -89,7 +87,6 @@ class _AddMediaPageState extends State<AddMediaPage> {
     _sutradaraController.dispose();
     _durasiController.dispose();
     _penulisController.dispose();
-    _halamanController.dispose();
     _catatanController.dispose();
     _halamanDibacaController.dispose(); // BARU: Dispose
     _artisController.dispose();
@@ -120,11 +117,10 @@ class _AddMediaPageState extends State<AddMediaPage> {
           mediaBaru = Buku(
             judul, tahun, genre, urlGambar,
             _penulisController.text,
-            int.parse(_halamanController.text),
             catatan: _catatanController.text,
-            status: _statusSaatIni, 
-            isFavorit: _isFavorit, 
-            halamanDibaca: int.tryParse(_halamanDibacaController.text) ?? 0, // BARU: Simpan halaman dibaca
+            status: _statusSaatIni,
+            isFavorit: _isFavorit,
+            halamanDibaca: int.tryParse(_halamanDibacaController.text) ?? 0,
           );
           break;
         case TipeMedia.AlbumMusik:
@@ -261,31 +257,20 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   decoration: const InputDecoration(labelText: 'Penulis'),
                   validator: (value) => value!.isEmpty ? 'Penulis tidak boleh kosong' : null,
                 ),
-                TextFormField(
-                  controller: _halamanController,
-                  decoration: const InputDecoration(labelText: 'Jumlah Halaman Total'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value!.isEmpty) return 'Jumlah halaman tidak boleh kosong';
-                    if (int.tryParse(value) == null) return 'Masukkan angka yang valid';
-                    if (int.parse(value) <= 0) return 'Jumlah halaman harus lebih dari 0';
-                    return null;
-                  },
-                ),
-                // BARU: Input untuk halaman yang sudah dibaca
-                TextFormField(
-                  controller: _halamanDibacaController,
-                  decoration: const InputDecoration(labelText: 'Halaman yang Sudah Dibaca (opsional)'),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return null; // Opsional
-                    final int? dibaca = int.tryParse(value);
-                    if (dibaca == null || dibaca < 0) return 'Masukkan angka positif yang valid';
-                    final int total = int.tryParse(_halamanController.text) ?? 0;
-                    if (total > 0 && dibaca > total) return 'Tidak boleh lebih dari total halaman ($total)';
-                    return null;
-                  },
-                ),
+                // Hapus input jumlah halaman total. Kita hanya menyimpan "halaman yang sudah dibaca".
+                // Tampilkan field halamanDibaca ketika status bukan Selesai.
+                if (_statusSaatIni != StatusProgress.Selesai)
+                  TextFormField(
+                    controller: _halamanDibacaController,
+                    decoration: const InputDecoration(labelText: 'Halaman yang Sudah Dibaca (opsional)'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return null; // Opsional
+                      final int? dibaca = int.tryParse(value);
+                      if (dibaca == null || dibaca < 0) return 'Masukkan angka positif yang valid';
+                      return null;
+                    },
+                  ),
                 TextFormField(
                   controller: _catatanController,
                   decoration: const InputDecoration(labelText: 'Catatan Pribadi'),

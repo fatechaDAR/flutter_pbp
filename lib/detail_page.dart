@@ -112,10 +112,15 @@ class _DetailPageState extends State<DetailPage> {
                 _buildRatingStars((widget.media as Film).ratingBintang),
               ] else if (widget.media is Buku) ...[
                 _buildDetailRow('Penulis:', (widget.media as Buku).penulis),
-                _buildDetailRow('Jumlah Halaman:', '${(widget.media as Buku).jumlahHalaman} halaman'),
-                
-                if ((widget.media as Buku).halamanDibaca > 0)
-                  _buildDetailRow('Sudah Dibaca:', '${(widget.media as Buku).halamanDibaca} halaman'),
+                // Kita tidak lagi menyimpan jumlah halaman total.
+                // Jika status Belum atau Sedang: tampilkan 'Sudah Dibaca' bila > 0.
+                if (widget.media.status != StatusProgress.Selesai) ...[
+                  if ((widget.media as Buku).halamanDibaca > 0)
+                    _buildDetailRow('Sudah Dibaca:', '${(widget.media as Buku).halamanDibaca} halaman'),
+                ] else ...[
+                  // Jika Selesai: bisa tampilkan keterangan bahwa buku selesai dibaca (opsional)
+                  _buildDetailRow('Status:', 'Selesai dibaca'),
+                ],
                 if ((widget.media as Buku).catatanPribadi.isNotEmpty)
                   _buildCatatan((widget.media as Buku).catatanPribadi),
               ] else if (widget.media is AlbumMusik) ...[
