@@ -1,0 +1,10 @@
+{
+  "name": "flutter_pbp devcontainer",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "adpyke.codesnap"
+      ]
+    }
+  }
+}
