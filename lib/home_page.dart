@@ -27,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   final List<Media> _daftarMedia = [];
   
   TipeMediaFilter? _filterAktif;
+  String? _genreFilter;
   UrutkanBerdasarkan _urutanAktif = UrutkanBerdasarkan.Judul;
   
   // BARU: Variabel untuk menyimpan data perangkat
@@ -156,6 +157,10 @@ class _HomePageState extends State<HomePage> {
           return a.judul.toLowerCase().compareTo(b.judul.toLowerCase());
       }
     });
+    // Apply genre filter if set
+    if (_genreFilter != null) {
+      hasil = hasil.where((m) => m.genres.contains(_genreFilter)).toList();
+    }
     return hasil;
   }
 
@@ -213,6 +218,20 @@ class _HomePageState extends State<HomePage> {
               const PopupMenuItem(child: Text('Urutkan Judul'), value: UrutkanBerdasarkan.Judul),
               const PopupMenuItem(child: Text('Urutkan Tahun'), value: UrutkanBerdasarkan.Tahun),
             ],
+          ),
+          PopupMenuButton<String?>(
+            icon: const Icon(Icons.category),
+            onSelected: (String? genre) => setState(() => _genreFilter = genre),
+            itemBuilder: (BuildContext context) {
+              final genres = <String>{};
+              for (var m in _daftarMedia) {
+                genres.addAll(m.genres);
+              }
+              final items = <PopupMenuEntry<String?>>[];
+              items.add(const PopupMenuItem(child: Text('Semua Genre'), value: null));
+              items.addAll(genres.map((g) => PopupMenuItem(child: Text(g), value: g)).toList());
+              return items;
+            },
           ),
         ],
       ),

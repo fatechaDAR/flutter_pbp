@@ -9,13 +9,13 @@ enum StatusProgress { Belum, Sedang, Selesai }
 abstract class Media {
   final String _judul;
   final int _tahunRilis;
-  final String _genre;
+  final List<String> _genres;
   final String? _urlGambar;
   StatusProgress _status;
   bool _isFavorit; 
 
   
-  Media(this._judul, this._tahunRilis, this._genre, this._urlGambar,
+  Media(this._judul, this._tahunRilis, this._genres, this._urlGambar,
       {StatusProgress status = StatusProgress.Belum,
       bool isFavorit = false})
       : _status = status,
@@ -24,7 +24,9 @@ abstract class Media {
   
   String get judul => _judul;
   int get tahunRilis => _tahunRilis;
-  String get genre => _genre;
+  // Backward-compatible convenience getter: join genres into a single string
+  String get genre => _genres.join(', ');
+  List<String> get genres => _genres;
   String? get urlGambar => _urlGambar;
   StatusProgress get status => _status;
   set status(StatusProgress statusbaru) => _status = statusbaru;

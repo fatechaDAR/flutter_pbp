@@ -5,6 +5,7 @@ import 'models/media.dart';
 import 'models/film.dart';
 import 'models/buku.dart';
 import 'models/album_musik.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum TipeMedia { Film, Buku, AlbumMusik }
 
@@ -24,7 +25,17 @@ class _AddMediaPageState extends State<AddMediaPage> {
   // Controller umum
   final _judulController = TextEditingController();
   final _tahunController = TextEditingController();
-  final _genreController = TextEditingController();
+  // genres: available and selected
+  List<String> _availableGenres = [
+    'Action',
+    'Drama',
+    'Sci-Fi',
+    'Fantasy',
+    'Horror',
+    'Romance',
+    'Comedy'
+  ];
+  final List<String> _selectedGenres = [];
   final _urlGambarController = TextEditingController(); 
 
   
@@ -49,11 +60,16 @@ class _AddMediaPageState extends State<AddMediaPage> {
   @override
   void initState() {
     super.initState();
+    _loadAvailableGenres();
     if (_isEditing) {
       final media = widget.mediaToEdit!;
       _judulController.text = media.judul;
       _tahunController.text = media.tahunRilis.toString();
-      _genreController.text = media.genre;
+      // ensure genres from media are in available list and selected
+      for (var g in media.genres) {
+        if (!_availableGenres.contains(g)) _availableGenres.add(g);
+        if (!_selectedGenres.contains(g)) _selectedGenres.add(g);
+      }
       _urlGambarController.text = media.urlGambar ?? ''; 
       _statusSaatIni = media.status; 
       _isFavorit = media.isFavorit; 
@@ -82,7 +98,6 @@ class _AddMediaPageState extends State<AddMediaPage> {
   void dispose() {
     _judulController.dispose();
     _tahunController.dispose();
-    _genreController.dispose();
     _urlGambarController.dispose();
     _sutradaraController.dispose();
     _durasiController.dispose();
@@ -94,18 +109,37 @@ class _AddMediaPageState extends State<AddMediaPage> {
     super.dispose();
   }
 
+  Future<void> _loadAvailableGenres() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final List<String>? saved = prefs.getStringList('available_genres');
+      if (saved != null && saved.isNotEmpty) {
+        setState(() {
+          _availableGenres = saved;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveAvailableGenres() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('available_genres', _availableGenres);
+    } catch (_) {}
+  }
+
   void _simpanForm() {
     if (_formKey.currentState!.validate()) {
       Media mediaBaru;
       final judul = _judulController.text;
       final tahun = int.parse(_tahunController.text);
-      final genre = _genreController.text;
+      final List<String> genreList = List.from(_selectedGenres);
       final urlGambar = _urlGambarController.text.isEmpty ? null : _urlGambarController.text; // Ambil URL gambar
 
       switch (_tipeMedia) {
         case TipeMedia.Film:
           mediaBaru = Film(
-            judul, tahun, genre, urlGambar,
+            judul, tahun, genreList, urlGambar,
             _sutradaraController.text,
             int.parse(_durasiController.text),
             rating: _rating,
@@ -115,7 +149,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
           break;
         case TipeMedia.Buku:
           mediaBaru = Buku(
-            judul, tahun, genre, urlGambar,
+            judul, tahun, genreList, urlGambar,
             _penulisController.text,
             catatan: _catatanController.text,
             status: _statusSaatIni,
@@ -125,7 +159,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
           break;
         case TipeMedia.AlbumMusik:
           mediaBaru = AlbumMusik(
-            judul, tahun, genre, urlGambar,
+            judul, tahun, genreList, urlGambar,
             _artisController.text,
             int.parse(_laguController.text),
             status: _statusSaatIni, // Tambahkan status
@@ -179,10 +213,67 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _genreController,
-                decoration: const InputDecoration(labelText: 'Genre'),
-                validator: (value) => value!.isEmpty ? 'Genre tidak boleh kosong' : null,
+              // Genre selection using FilterChips
+              const SizedBox(height: 8),
+              const Text('Genre:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ..._availableGenres.map((g) {
+                    final bool selected = _selectedGenres.contains(g);
+                    return FilterChip(
+                      label: Text(g),
+                      selected: selected,
+                      onSelected: (v) {
+                        setState(() {
+                          if (v) _selectedGenres.add(g);
+                          else _selectedGenres.remove(g);
+                        });
+                      },
+                    );
+                  }).toList(),
+                  // Add new genre chip
+                  ActionChip(
+                    label: const Text('Tambahkan Genre Baru'),
+                    avatar: const Icon(Icons.add),
+                    onPressed: () async {
+                      final String? newGenre = await showDialog<String>(
+                        context: context,
+                        builder: (context) {
+                          final _newGenreController = TextEditingController();
+                          return AlertDialog(
+                            title: const Text('Tambah Genre Baru'),
+                            content: TextFormField(
+                              controller: _newGenreController,
+                              decoration: const InputDecoration(labelText: 'Nama Genre'),
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+                              TextButton(
+                                onPressed: () {
+                                  final text = _newGenreController.text.trim();
+                                  if (text.isNotEmpty) Navigator.pop(context, text);
+                                },
+                                child: const Text('Tambah'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (newGenre != null) {
+                        setState(() {
+                          if (!_availableGenres.contains(newGenre)) {
+                            _availableGenres.add(newGenre);
+                            _saveAvailableGenres();
+                          }
+                          if (!_selectedGenres.contains(newGenre)) _selectedGenres.add(newGenre);
+                        });
+                      }
+                    },
+                  ),
+                ],
               ),
               TextFormField( // Asumsi ada field URL gambar
                 controller: _urlGambarController,

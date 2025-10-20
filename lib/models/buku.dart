@@ -10,7 +10,7 @@ class Buku extends Media {
   Buku(
     String judul,
     int tahun,
-    String genre,
+    List<String> genres,
     String? url,
     this._penulis, {
     String catatan = '',
@@ -19,7 +19,7 @@ class Buku extends Media {
     int halamanDibaca = 0,
   })  : _catatanPribadi = catatan,
         _halamanDibaca = halamanDibaca,
-        super(judul, tahun, genre, url, status: status, isFavorit: isFavorit) {
+        super(judul, tahun, genres, url, status: status, isFavorit: isFavorit) {
     // Tidak ada batasan atas karena kita tidak lagi menyimpan jumlah total halaman
     assert(halamanDibaca >= 0, 'Halaman yang dibaca harus bernilai >= 0');
   }
@@ -41,7 +41,8 @@ class Buku extends Media {
         'type': 'buku',
         'judul': judul,
         'tahunRilis': tahunRilis,
-        'genre': genre,
+    'genre': genre,
+    'genres': genres,
         'urlGambar': urlGambar,
         'status': status.name,
         'isFavorit': isFavorit,
@@ -51,10 +52,19 @@ class Buku extends Media {
       };
 
   factory Buku.fromJson(Map<String, dynamic> map) {
+    List<String> genres;
+    if (map.containsKey('genres') && map['genres'] is List) {
+      genres = List<String>.from(map['genres']);
+    } else if (map.containsKey('genre') && map['genre'] is String) {
+      genres = [(map['genre'] as String)];
+    } else {
+      genres = [];
+    }
+
     return Buku(
       map['judul'],
       map['tahunRilis'],
-      map['genre'],
+      genres,
       map['urlGambar'],
       map['penulis'],
       catatan: map['catatanPribadi'] ?? '',
