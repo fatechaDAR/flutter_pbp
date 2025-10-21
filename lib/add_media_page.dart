@@ -51,6 +51,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
   // Controller spesifik Album Musik
   final _artisController = TextEditingController();
   final _laguController = TextEditingController();
+  final _albumGenreController = TextEditingController();
 
 
   StatusProgress _statusSaatIni = StatusProgress.Belum; 
@@ -65,10 +66,16 @@ class _AddMediaPageState extends State<AddMediaPage> {
       final media = widget.mediaToEdit!;
       _judulController.text = media.judul;
       _tahunController.text = media.tahunRilis.toString();
-      // ensure genres from media are in available list and selected
-      for (var g in media.genres) {
-        if (!_availableGenres.contains(g)) _availableGenres.add(g);
-        if (!_selectedGenres.contains(g)) _selectedGenres.add(g);
+      // ensure genres from media are in available list and selected (for Film/Buku)
+      if (media is Film || media is Buku) {
+        for (var g in media.genres) {
+          if (!_availableGenres.contains(g)) _availableGenres.add(g);
+          if (!_selectedGenres.contains(g)) _selectedGenres.add(g);
+        }
+      }
+      // if editing AlbumMusik, set single genre field
+      if (media is AlbumMusik) {
+        _albumGenreController.text = media.genre;
       }
       _urlGambarController.text = media.urlGambar ?? ''; 
       _statusSaatIni = media.status; 
@@ -106,6 +113,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
     _halamanDibacaController.dispose(); // BARU: Dispose
     _artisController.dispose();
     _laguController.dispose();
+    _albumGenreController.dispose();
     super.dispose();
   }
 
@@ -159,7 +167,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
           break;
         case TipeMedia.AlbumMusik:
           mediaBaru = AlbumMusik(
-            judul, tahun, genreList, urlGambar,
+            judul, tahun, _albumGenreController.text.trim(), urlGambar,
             _artisController.text,
             int.parse(_laguController.text),
             status: _statusSaatIni, // Tambahkan status
@@ -213,68 +221,78 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   return null;
                 },
               ),
-              // Genre selection using FilterChips
-              const SizedBox(height: 8),
-              const Text('Genre:', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ..._availableGenres.map((g) {
-                    final bool selected = _selectedGenres.contains(g);
-                    return FilterChip(
-                      label: Text(g),
-                      selected: selected,
-                      onSelected: (v) {
-                        setState(() {
-                          if (v) _selectedGenres.add(g);
-                          else _selectedGenres.remove(g);
-                        });
-                      },
-                    );
-                  }).toList(),
-                  // Add new genre chip
-                  ActionChip(
-                    label: const Text('Tambahkan Genre Baru'),
-                    avatar: const Icon(Icons.add),
-                    onPressed: () async {
-                      final String? newGenre = await showDialog<String>(
-                        context: context,
-                        builder: (context) {
-                          final _newGenreController = TextEditingController();
-                          return AlertDialog(
-                            title: const Text('Tambah Genre Baru'),
-                            content: TextFormField(
-                              controller: _newGenreController,
-                              decoration: const InputDecoration(labelText: 'Nama Genre'),
-                            ),
-                            actions: [
-                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-                              TextButton(
-                                onPressed: () {
-                                  final text = _newGenreController.text.trim();
-                                  if (text.isNotEmpty) Navigator.pop(context, text);
-                                },
-                                child: const Text('Tambah'),
-                              ),
-                            ],
-                          );
+              // Genre selection: only for Film and Buku show multiple-selection chips
+              if (_tipeMedia == TipeMedia.Film || _tipeMedia == TipeMedia.Buku) ...[
+                const SizedBox(height: 8),
+                const Text('Genre:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ..._availableGenres.map((g) {
+                      final bool selected = _selectedGenres.contains(g);
+                      return FilterChip(
+                        label: Text(g),
+                        selected: selected,
+                        onSelected: (v) {
+                          setState(() {
+                            if (v) _selectedGenres.add(g);
+                            else _selectedGenres.remove(g);
+                          });
                         },
                       );
-                      if (newGenre != null) {
-                        setState(() {
-                          if (!_availableGenres.contains(newGenre)) {
-                            _availableGenres.add(newGenre);
-                            _saveAvailableGenres();
-                          }
-                          if (!_selectedGenres.contains(newGenre)) _selectedGenres.add(newGenre);
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
+                    }).toList(),
+                    // Add new genre chip
+                    ActionChip(
+                      label: const Text('Tambahkan Genre Baru'),
+                      avatar: const Icon(Icons.add),
+                      onPressed: () async {
+                        final String? newGenre = await showDialog<String>(
+                          context: context,
+                          builder: (context) {
+                            final newGenreController = TextEditingController();
+                            return AlertDialog(
+                              title: const Text('Tambah Genre Baru'),
+                              content: TextFormField(
+                                controller: newGenreController,
+                                decoration: const InputDecoration(labelText: 'Nama Genre'),
+                              ),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+                                TextButton(
+                                  onPressed: () {
+                                    final text = newGenreController.text.trim();
+                                    if (text.isNotEmpty) Navigator.pop(context, text);
+                                  },
+                                  child: const Text('Tambah'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        if (newGenre != null) {
+                          setState(() {
+                            if (!_availableGenres.contains(newGenre)) {
+                              _availableGenres.add(newGenre);
+                              _saveAvailableGenres();
+                            }
+                            if (!_selectedGenres.contains(newGenre)) _selectedGenres.add(newGenre);
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ] else if (_tipeMedia == TipeMedia.AlbumMusik) ...[
+                // For albums show a single genre text field
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _albumGenreController,
+                  decoration: const InputDecoration(labelText: 'Genre'),
+                  validator: (value) => value!.isEmpty ? 'Genre tidak boleh kosong' : null,
+                ),
+              ],
               TextFormField( // Asumsi ada field URL gambar
                 controller: _urlGambarController,
                 decoration: const InputDecoration(labelText: 'URL Gambar (opsional)'),

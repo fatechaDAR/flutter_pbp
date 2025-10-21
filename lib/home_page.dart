@@ -29,6 +29,8 @@ class _HomePageState extends State<HomePage> {
   TipeMediaFilter? _filterAktif;
   String? _genreFilter;
   UrutkanBerdasarkan _urutanAktif = UrutkanBerdasarkan.Judul;
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearching = false;
   
   // BARU: Variabel untuk menyimpan data perangkat
   Map<String, dynamic> _deviceData = <String, dynamic>{};
@@ -161,6 +163,11 @@ class _HomePageState extends State<HomePage> {
     if (_genreFilter != null) {
       hasil = hasil.where((m) => m.genres.contains(_genreFilter)).toList();
     }
+    // Apply search filter (case-insensitive) if there's a query
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      hasil = hasil.where((m) => m.judul.toLowerCase().contains(query)).toList();
+    }
     return hasil;
   }
 
@@ -197,10 +204,31 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       appBar: AppBar(
-        title: const Text('Koleksi Media'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  hintText: 'Cari judul...',
+                  border: InputBorder.none,
+                ),
+                onChanged: (_) => setState(() {}),
+              )
+            : const Text('Koleksi Media'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _searchController.clear();
+                }
+                _isSearching = !_isSearching;
+              });
+            },
+          ),
           PopupMenuButton<TipeMediaFilter?>(
             icon: const Icon(Icons.filter_list),
             onSelected: (TipeMediaFilter? tipe) => setState(() => _filterAktif = tipe),
