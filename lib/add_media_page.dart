@@ -6,6 +6,8 @@ import 'models/film.dart';
 import 'models/buku.dart';
 import 'models/album_musik.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http; // BARU: Import http
+import 'dart:convert'; // BARU: Import convert
 
 enum TipeMedia { Film, Buku, AlbumMusik }
 
@@ -18,6 +20,10 @@ class AddMediaPage extends StatefulWidget {
 }
 
 class _AddMediaPageState extends State<AddMediaPage> {
+  // --- GANTI DENGAN API KEY ANDA DARI LANGKAH 1 ---
+  final String _tmdbApiKey = 'bac2f96896446d6f6258158cde499f3b';
+  // -------------------------------------------------
+
   final _formKey = GlobalKey<FormState>();
   late TipeMedia _tipeMedia;
   bool get _isEditing => widget.mediaToEdit != null;
@@ -25,38 +31,32 @@ class _AddMediaPageState extends State<AddMediaPage> {
   // Controller umum
   final _judulController = TextEditingController();
   final _tahunController = TextEditingController();
-  // genres: available and selected
   List<String> _availableGenres = [
-    'Action',
-    'Drama',
-    'Sci-Fi',
-    'Fantasy',
-    'Horror',
-    'Romance',
-    'Comedy'
+    'Action', 'Drama', 'Sci-Fi', 'Fantasy', 'Horror', 'Romance', 'Comedy'
   ];
   final List<String> _selectedGenres = [];
-  final _urlGambarController = TextEditingController(); 
+  final _urlGambarController = TextEditingController();
 
-  
+  // Controller spesifik Film
   final _sutradaraController = TextEditingController();
   final _durasiController = TextEditingController();
-  double _rating = 0.0; 
+  double _rating = 0.0;
 
   // Controller spesifik Buku
   final _penulisController = TextEditingController();
   final _catatanController = TextEditingController();
-  final _halamanDibacaController = TextEditingController(); 
+  final _halamanDibacaController = TextEditingController();
 
   // Controller spesifik Album Musik
   final _artisController = TextEditingController();
   final _laguController = TextEditingController();
   final _albumGenreController = TextEditingController();
 
+  StatusProgress _statusSaatIni = StatusProgress.Belum;
+  bool _isFavorit = false;
 
-  StatusProgress _statusSaatIni = StatusProgress.Belum; 
-  bool _isFavorit = false; 
-
+  // BARU: State untuk loading saat mencari data film
+  bool _isFetchingFilmData = false;
 
   @override
   void initState() {
@@ -66,31 +66,29 @@ class _AddMediaPageState extends State<AddMediaPage> {
       final media = widget.mediaToEdit!;
       _judulController.text = media.judul;
       _tahunController.text = media.tahunRilis.toString();
-      // ensure genres from media are in available list and selected (for Film/Buku)
       if (media is Film || media is Buku) {
         for (var g in media.genres) {
           if (!_availableGenres.contains(g)) _availableGenres.add(g);
           if (!_selectedGenres.contains(g)) _selectedGenres.add(g);
         }
       }
-      // if editing AlbumMusik, set single genre field
       if (media is AlbumMusik) {
         _albumGenreController.text = media.genre;
       }
-      _urlGambarController.text = media.urlGambar ?? ''; 
-      _statusSaatIni = media.status; 
-      _isFavorit = media.isFavorit; 
+      _urlGambarController.text = media.urlGambar ?? '';
+      _statusSaatIni = media.status;
+      _isFavorit = media.isFavorit;
 
       if (media is Film) {
         _tipeMedia = TipeMedia.Film;
         _sutradaraController.text = media.sutradara;
         _durasiController.text = media.durasiMenit.toString();
         _rating = media.ratingBintang;
-        } else if (media is Buku) {
+      } else if (media is Buku) {
         _tipeMedia = TipeMedia.Buku;
         _penulisController.text = media.penulis;
         _catatanController.text = media.catatanPribadi;
-        _halamanDibacaController.text = media.halamanDibaca.toString(); // BARU: Load halaman dibaca
+        _halamanDibacaController.text = media.halamanDibaca.toString();
       } else if (media is AlbumMusik) {
         _tipeMedia = TipeMedia.AlbumMusik;
         _artisController.text = media.artis;
@@ -110,7 +108,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
     _durasiController.dispose();
     _penulisController.dispose();
     _catatanController.dispose();
-    _halamanDibacaController.dispose(); // BARU: Dispose
+    _halamanDibacaController.dispose();
     _artisController.dispose();
     _laguController.dispose();
     _albumGenreController.dispose();
@@ -136,13 +134,116 @@ class _AddMediaPageState extends State<AddMediaPage> {
     } catch (_) {}
   }
 
+  // BARU: Fungsi untuk mencari data film dari API TMDB
+  Future<void> _fetchFilmData() async {
+    if (_judulController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Masukkan judul film terlebih dahulu!')),
+      );
+      return;
+    }
+    
+    if (_tmdbApiKey == 'MASUKKAN_API_KEY_TMDB_ANDA_DI_SINI') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(backgroundColor: Colors.red, content: Text('Harap masukkan API Key TMDB di file add_media_page.dart!')),
+      );
+      return;
+    }
+
+    setState(() { _isFetchingFilmData = true; });
+
+    try {
+      // 1. Mencari film berdasarkan judul
+      final searchUrl = Uri.parse(
+          'https://api.themoviedb.org/3/search/movie?api_key=$_tmdbApiKey&query=${Uri.encodeComponent(_judulController.text)}&language=id-ID&page=1');
+      final searchResponse = await http.get(searchUrl);
+      
+      if (searchResponse.statusCode != 200) throw Exception('Gagal mencari film (Status: ${searchResponse.statusCode})');
+
+      final searchData = jsonDecode(searchResponse.body);
+      if (searchData['results'] == null || (searchData['results'] as List).isEmpty) {
+        throw Exception('Film tidak ditemukan');
+      }
+
+      // Ambil film pertama yang paling relevan
+      final filmResult = searchData['results'][0];
+      final filmId = filmResult['id'];
+
+      // 2. Mendapatkan detail (sutradara, durasi, genre)
+      final detailsUrl = Uri.parse(
+          'https://api.themoviedb.org/3/movie/$filmId?api_key=$_tmdbApiKey&language=id-ID&append_to_response=credits');
+      final detailsResponse = await http.get(detailsUrl);
+      
+      if (detailsResponse.statusCode != 200) throw Exception('Gagal mendapatkan detail film (Status: ${detailsResponse.statusCode})');
+
+      final detailsData = jsonDecode(detailsResponse.body);
+
+      // --- Ekstrak Data ---
+      
+      // Sutradara (Director)
+      String director = '';
+      final crew = detailsData['credits']['crew'] as List;
+      director = crew.firstWhere(
+        (member) => member['job'] == 'Director',
+        orElse: () => {'name': 'N/A'}
+      )['name'];
+      
+      // Durasi (Runtime)
+      final int runtime = detailsData['runtime'] ?? 0;
+      
+      // Genre
+      final apiGenres = (detailsData['genres'] as List).map((g) => g['name'] as String).toList();
+      
+      // Poster
+      final posterPath = filmResult['poster_path'];
+      final posterUrl = (posterPath != null) ? 'https://image.tmdb.org/t/p/w500$posterPath' : '';
+
+      // Tahun Rilis
+      final releaseDate = filmResult['release_date'] ?? ''; // Format YYYY-MM-DD
+      final year = (releaseDate.isNotEmpty) ? releaseDate.split('-')[0] : '';
+      
+      // Rating (TMDB 0-10, kita 0-5)
+      final apiRating = (filmResult['vote_average'] ?? 0.0).toDouble();
+      final appRating = (apiRating / 2).clamp(0.0, 5.0); // Konversi ke skala 0-5
+
+      // --- Perbarui UI (setState) ---
+      setState(() {
+        _tahunController.text = year;
+        _urlGambarController.text = posterUrl;
+        _sutradaraController.text = director;
+        _durasiController.text = runtime.toString();
+        _rating = appRating;
+        
+        // Perbarui daftar genre
+        _selectedGenres.clear();
+        for (var g in apiGenres) {
+          if (g.isNotEmpty && !_availableGenres.contains(g)) {
+            _availableGenres.add(g);
+          }
+          if (g.isNotEmpty) {
+            _selectedGenres.add(g);
+          }
+        }
+        _saveAvailableGenres(); // Simpan daftar genre baru ke SharedPreferences
+      });
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      setState(() { _isFetchingFilmData = false; });
+    }
+  }
+
+
   void _simpanForm() {
     if (_formKey.currentState!.validate()) {
       Media mediaBaru;
       final judul = _judulController.text;
       final tahun = int.parse(_tahunController.text);
       final List<String> genreList = List.from(_selectedGenres);
-      final urlGambar = _urlGambarController.text.isEmpty ? null : _urlGambarController.text; // Ambil URL gambar
+      final urlGambar = _urlGambarController.text.isEmpty ? null : _urlGambarController.text;
 
       switch (_tipeMedia) {
         case TipeMedia.Film:
@@ -170,8 +271,8 @@ class _AddMediaPageState extends State<AddMediaPage> {
             judul, tahun, _albumGenreController.text.trim(), urlGambar,
             _artisController.text,
             int.parse(_laguController.text),
-            status: _statusSaatIni, // Tambahkan status
-            isFavorit: _isFavorit, // Tambahkan favorit
+            status: _statusSaatIni,
+            isFavorit: _isFavorit,
           );
           break;
       }
@@ -205,12 +306,26 @@ class _AddMediaPageState extends State<AddMediaPage> {
               ),
               const SizedBox(height: 16),
 
-              // Field Umum
+              // Field Judul
               TextFormField(
                 controller: _judulController,
-                decoration: const InputDecoration(labelText: 'Judul'),
+                decoration: InputDecoration(
+                  labelText: 'Judul',
+                  // DIUBAH: Tambahkan tombol cari HANYA jika TipeMedia.Film
+                  suffixIcon: _tipeMedia == TipeMedia.Film && !_isEditing
+                    ? (_isFetchingFilmData 
+                        ? const Padding(padding: EdgeInsets.all(12.0), child: CircularProgressIndicator(strokeWidth: 3)) 
+                        : IconButton(
+                            icon: const Icon(Icons.search, color: Colors.indigo),
+                            tooltip: 'Cari Data Film Otomatis',
+                            onPressed: _fetchFilmData,
+                          ))
+                    : null,
+                ),
                 validator: (value) => value!.isEmpty ? 'Judul tidak boleh kosong' : null,
               ),
+
+              // Field Umum
               TextFormField(
                 controller: _tahunController,
                 decoration: const InputDecoration(labelText: 'Tahun Rilis'),
@@ -221,7 +336,8 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   return null;
                 },
               ),
-              // Genre selection: only for Film and Buku show multiple-selection chips
+              
+              // Genre selection: (Kode Anda sebelumnya sudah benar)
               if (_tipeMedia == TipeMedia.Film || _tipeMedia == TipeMedia.Buku) ...[
                 const SizedBox(height: 8),
                 const Text('Genre:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -243,7 +359,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
                         },
                       );
                     }).toList(),
-                    // Add new genre chip
+                    // Tombol Tambah Genre Baru
                     ActionChip(
                       label: const Text('Tambahkan Genre Baru'),
                       avatar: const Icon(Icons.add),
@@ -257,6 +373,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
                               content: TextFormField(
                                 controller: newGenreController,
                                 decoration: const InputDecoration(labelText: 'Nama Genre'),
+                                autofocus: true,
                               ),
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
@@ -273,11 +390,13 @@ class _AddMediaPageState extends State<AddMediaPage> {
                         );
                         if (newGenre != null) {
                           setState(() {
-                            if (!_availableGenres.contains(newGenre)) {
+                            if (newGenre.isNotEmpty && !_availableGenres.contains(newGenre)) {
                               _availableGenres.add(newGenre);
                               _saveAvailableGenres();
                             }
-                            if (!_selectedGenres.contains(newGenre)) _selectedGenres.add(newGenre);
+                            if (newGenre.isNotEmpty && !_selectedGenres.contains(newGenre)) {
+                              _selectedGenres.add(newGenre);
+                            }
                           });
                         }
                       },
@@ -285,7 +404,7 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   ],
                 ),
               ] else if (_tipeMedia == TipeMedia.AlbumMusik) ...[
-                // For albums show a single genre text field
+                // Input genre tunggal untuk Album Musik
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _albumGenreController,
@@ -293,7 +412,8 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   validator: (value) => value!.isEmpty ? 'Genre tidak boleh kosong' : null,
                 ),
               ],
-              TextFormField( // Asumsi ada field URL gambar
+              
+              TextFormField(
                 controller: _urlGambarController,
                 decoration: const InputDecoration(labelText: 'URL Gambar (opsional)'),
               ),
@@ -332,7 +452,6 @@ class _AddMediaPageState extends State<AddMediaPage> {
               ),
               const SizedBox(height: 16),
 
-
               // Field Spesifik Tipe Media
               if (_tipeMedia == TipeMedia.Film) ...[
                 TextFormField(
@@ -366,15 +485,13 @@ class _AddMediaPageState extends State<AddMediaPage> {
                   decoration: const InputDecoration(labelText: 'Penulis'),
                   validator: (value) => value!.isEmpty ? 'Penulis tidak boleh kosong' : null,
                 ),
-                // Hapus input jumlah halaman total. Kita hanya menyimpan "halaman yang sudah dibaca".
-                // Tampilkan field halamanDibaca ketika status bukan Selesai.
                 if (_statusSaatIni != StatusProgress.Selesai)
                   TextFormField(
                     controller: _halamanDibacaController,
                     decoration: const InputDecoration(labelText: 'Halaman yang Sudah Dibaca (opsional)'),
                     keyboardType: TextInputType.number,
                     validator: (value) {
-                      if (value == null || value.isEmpty) return null; // Opsional
+                      if (value == null || value.isEmpty) return null;
                       final int? dibaca = int.tryParse(value);
                       if (dibaca == null || dibaca < 0) return 'Masukkan angka positif yang valid';
                       return null;

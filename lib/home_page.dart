@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:device_info_plus/device_info_plus.dart'; // BARU: Import package
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
@@ -32,28 +32,32 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   
-  // BARU: Variabel untuk menyimpan data perangkat
   Map<String, dynamic> _deviceData = <String, dynamic>{};
 
   @override
   void initState() {
     super.initState();
     _loadMedia();
-    _initDeviceInfo(); // BARU: Panggil fungsi untuk mengambil info perangkat
+    _initDeviceInfo();
+    // DIUBAH: Listener untuk search bar sekarang ada di sini
+    _searchController.addListener(() {
+      setState(() {
+        // Cukup panggil setState agar getter mediaYangDitampilkan dieksekusi ulang
+      });
+    });
   }
 
-  // BARU: Fungsi untuk mengambil informasi perangkat
+  // DIUBAH: webBrowserInfo() menjadi webBrowserInfo.data
   Future<void> _initDeviceInfo() async {
     final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
     Map<String, dynamic> data = {};
     
-    // Karena Anda menggunakan Codespaces (basis Web), kita ambil WebBrowserInfo
     try {
-      // Periksa apakah aplikasi berjalan di platform web
       if (kIsWeb) {
+        // PERBAIKAN: webBrowserInfo adalah getter, bukan method
+        // dan kita butuh .data untuk mendapatkan Map-nya
         data = (await deviceInfoPlugin.webBrowserInfo).data;
       } else {
-        // Tambahkan logika untuk platform lain jika perlu, misal Android
         // data = (await deviceInfoPlugin.androidInfo).data;
       }
     } catch (e) {
@@ -86,11 +90,13 @@ class _HomePageState extends State<HomePage> {
     await prefs.setString('daftar_media', mediaString);
   }
 
+  // PERBAIKAN: Logika kembali ke versi Anda yang benar
   void _bukaHalamanDetail(Media media) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => DetailPage(media: media)),
     );
+    // DetailPage mengembalikan bool 'true' jika ada perubahan
     if (result == true) {
       setState(() {});
       _saveMedia();
@@ -108,8 +114,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // PERBAIKAN: Logika kembali ke versi Anda yang benar (menggunakan index)
   void _bukaHalamanEditMedia(int index) async {
+    // Cari index asli di _daftarMedia berdasarkan objek dari mediaYangDitampilkan
     final int indexAsli = _daftarMedia.indexOf(mediaYangDitampilkan[index]);
+    
+    // Jika tidak ditemukan (seharusnya tidak terjadi), jangan lakukan apa-apa
+    if (indexAsli == -1) return;
+
     final mediaDiedit = await Navigator.push<Media>(
       context,
       MaterialPageRoute(builder: (context) => AddMediaPage(mediaToEdit: _daftarMedia[indexAsli])),
@@ -122,6 +134,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // PERBAIKAN: Logika kembali ke versi Anda yang benar (menggunakan objek)
   void _hapusMedia(Media media) {
     setState(() {
       _daftarMedia.remove(media);
@@ -131,6 +144,7 @@ class _HomePageState extends State<HomePage> {
         .showSnackBar(SnackBar(content: Text('${media.judul} dihapus')));
   }
   
+  // PERBAIKAN: Fungsi ini ditambahkan kembali
   void _toggleFavoritStatus(Media media) {
     setState(() {
       media.toggleFavorit();
@@ -159,11 +173,12 @@ class _HomePageState extends State<HomePage> {
           return a.judul.toLowerCase().compareTo(b.judul.toLowerCase());
       }
     });
-    // Apply genre filter if set
+    
     if (_genreFilter != null) {
       hasil = hasil.where((m) => m.genres.contains(_genreFilter)).toList();
     }
-    // Apply search filter (case-insensitive) if there's a query
+    
+    // Filter pencarian
     final query = _searchController.text.trim().toLowerCase();
     if (query.isNotEmpty) {
       hasil = hasil.where((m) => m.judul.toLowerCase().contains(query)).toList();
@@ -184,7 +199,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // BARU: Drawer (Menu Samping) ditambahkan di sini
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -193,7 +207,6 @@ class _HomePageState extends State<HomePage> {
               decoration: BoxDecoration(color: Colors.indigo),
               child: Text('Info Perangkat', style: TextStyle(color: Colors.white, fontSize: 24)),
             ),
-            // Tampilkan setiap item dari info perangkat
             ..._deviceData.entries.map((entry) {
               return ListTile(
                 title: Text(entry.key),
@@ -208,11 +221,15 @@ class _HomePageState extends State<HomePage> {
             ? TextField(
                 controller: _searchController,
                 autofocus: true,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Cari judul...',
                   border: InputBorder.none,
+                  hintStyle: TextStyle(color: Colors.white70), // Pastikan hint terlihat
                 ),
-                onChanged: (_) => setState(() {}),
+                style: TextStyle(color: Colors.white), // Pastikan teks terlihat
+                onChanged: (value) { // Panggil setState di onChanged
+                  setState(() {});
+                },
               )
             : const Text('Koleksi Media'),
         backgroundColor: Colors.indigo,
@@ -222,10 +239,10 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: () {
               setState(() {
-                if (_isSearching) {
-                  _searchController.clear();
-                }
                 _isSearching = !_isSearching;
+                if (!_isSearching) {
+                  _searchController.clear(); // Hapus teks saat menutup search bar
+                }
               });
             },
           ),
@@ -264,16 +281,56 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       body: mediaYangDitampilkan.isEmpty
-          ? const Center(child: Text('Tidak ada media. Tekan + untuk menambah.'))
+          ? const Center(child: Text('Tidak ada media yang ditemukan.')) // Pesan lebih baik
           : ListView.builder(
               itemCount: mediaYangDitampilkan.length,
               itemBuilder: (context, index) {
                 final media = mediaYangDitampilkan[index];
                 IconData ikon;
                 String subtitle;
-                if (media is Film) { ikon = Icons.movie; subtitle = 'Film oleh ${(media as Film).sutradara}'; } 
-                else if (media is Buku) { ikon = Icons.book; subtitle = 'Buku oleh ${(media as Buku).penulis}'; } 
-                else { ikon = Icons.music_note; subtitle = 'Album oleh ${(media as AlbumMusik).artis}'; }
+                
+                // --- IMPLEMENTASI POSTER FILM DIMULAI DI SINI ---
+                Widget leadingWidget;
+
+                if (media is Film) { 
+                  ikon = Icons.movie; 
+                  subtitle = 'Film oleh ${(media as Film).sutradara}'; 
+                  
+                  // Cek jika film punya URL gambar
+                  if (media.urlGambar != null && media.urlGambar!.isNotEmpty) {
+                    leadingWidget = CircleAvatar(
+                      backgroundImage: NetworkImage(media.urlGambar!),
+                      radius: 28, // Beri ukuran
+                      onBackgroundImageError: (exception, stackTrace) {}, // Handle error
+                    );
+                  } else {
+                    // Tampilkan ikon default jika tidak ada URL
+                    leadingWidget = CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.indigo.shade100,
+                      child: Icon(ikon, color: Colors.indigo),
+                    );
+                  }
+
+                } else if (media is Buku) { 
+                  ikon = Icons.book; 
+                  subtitle = 'Buku oleh ${(media as Buku).penulis}'; 
+                  leadingWidget = CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.indigo.shade100,
+                    child: Icon(ikon, color: Colors.indigo),
+                  );
+                } else { // AlbumMusik
+                  ikon = Icons.music_note; 
+                  subtitle = 'Album oleh ${(media as AlbumMusik).artis}'; 
+                  leadingWidget = CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Colors.indigo.shade100,
+                    child: Icon(ikon, color: Colors.indigo),
+                  );
+                }
+                // --- IMPLEMENTASI POSTER FILM BERAKHIR DI SINI ---
+
 
                 return Dismissible(
                   key: Key(media.judul + media.tahunRilis.toString()),
@@ -284,7 +341,14 @@ class _HomePageState extends State<HomePage> {
                     color: media.isFavorit ? Colors.amber.shade100 : null,
                     margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: ListTile(
-                      leading: Row(mainAxisSize: MainAxisSize.min, children: [_buildStatusIndicator(media.status), const SizedBox(width: 12), Icon(ikon, color: Colors.indigo)]),
+                      leading: Row(
+                        mainAxisSize: MainAxisSize.min, 
+                        children: [
+                          _buildStatusIndicator(media.status), 
+                          const SizedBox(width: 12), 
+                          leadingWidget // DIUBAH: Gunakan widget yang sudah disiapkan
+                        ]
+                      ),
                       title: Text(media.judul),
                       subtitle: Text(subtitle),
                       trailing: Row(
@@ -295,11 +359,11 @@ class _HomePageState extends State<HomePage> {
                               media.isFavorit ? Icons.favorite : Icons.favorite_border,
                               color: Colors.redAccent,
                             ),
-                            onPressed: () => _toggleFavoritStatus(media),
+                            onPressed: () => _toggleFavoritStatus(media), // PERBAIKAN: Fungsi ini sudah ada
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit, color: Colors.grey),
-                            onPressed: () => _bukaHalamanEditMedia(index),
+                            onPressed: () => _bukaHalamanEditMedia(index), // PERBAIKAN: Menggunakan index
                           ),
                         ],
                       ),
